@@ -1,9 +1,9 @@
 /**
- * QR-Shield URL Analysis Engine
+ * aldanba URL Analysis Engine
  * On-device classifier — no data leaves the browser.
  */
 
-const QRShieldAnalyzer = (() => {
+const AldanbaAnalyzer = (() => {
   const TRUSTED_DOMAINS = [
     'kaspi.kz', 'halykbank.kz', 'homebank.kz', 'forte.kz',
     'jusan.kz', 'jysanbank.kz', 'bcc.kz', 'freedom.kz',

@@ -1,4 +1,4 @@
-/* QR-Shield — on-device engine (pure JavaScript, no backend, no dependencies).
+/* aldanba — on-device engine (pure JavaScript, no backend, no dependencies).
  * Mirrors the Python model exactly. Requires qrshield_model_data.js loaded first
  * (defines QRS_MODEL).  Exposes window.qrShieldAssess(url) -> verdict object.
  */

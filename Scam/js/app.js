@@ -1,5 +1,5 @@
 /**
- * QR-Shield App Controller
+ * aldanba App Controller
  * Main page handles demo analysis only. Camera scanning lives in /scan.html.
  */
 
@@ -9,7 +9,7 @@ const AppController = (() => {
   }
 
   function showResults(urlStr) {
-    const result = QRShieldAnalyzer.analyze(urlStr);
+    const result = AldanbaAnalyzer.analyze(urlStr);
     renderResults(result);
     document.getElementById('resultsModal').classList.add('active');
     document.body.style.overflow = 'hidden';
