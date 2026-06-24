@@ -57,7 +57,7 @@ export function RiskGauge({ risk, verdict }: Props) {
         <Path
           d="M20 110 A90 90 0 0 1 200 110"
           fill="none"
-          stroke="#DDE3F6"
+          stroke={colors.line}
           strokeWidth={18}
           strokeLinecap="round"
         />

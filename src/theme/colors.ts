@@ -1,19 +1,19 @@
 export const colors = {
-  primary: "#0E7C86",
-  deep: "#16202E",
-  bg: "#F3F7FA",
-  surface: "#FEFFFF",
-  text: "#16202E",
-  muted: "#697887",
-  line: "#D9E6ED",
-  scan: "#7BE3D6",
+  primary: "#5B6CF0",
+  deep: "#3B3E9E",
+  bg: "#EEF1FC",
+  surface: "#FFFFFF",
+  text: "#1B1F3B",
+  muted: "#8A90A8",
+  line: "#DDE3F6",
+  scan: "#8FE7FF",
   green: "#15803D",
   amber: "#B45309",
   red: "#DC2626",
   softGreen: "#EAF7EF",
   softAmber: "#FFF2E2",
   softRed: "#FFF0F0",
-  terminal: "#071417",
+  terminal: "#111735",
 };
 
 export const radii = {
@@ -22,9 +22,9 @@ export const radii = {
 };
 
 export const shadow = {
-  shadowColor: "#10242D",
-  shadowOpacity: 0.11,
-  shadowRadius: 16,
+  shadowColor: "#3B3E9E",
+  shadowOpacity: 0.12,
+  shadowRadius: 18,
   shadowOffset: { width: 0, height: 10 },
   elevation: 4,
 };
