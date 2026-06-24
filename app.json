@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "Aldanba",
+    "slug": "aldanba-ai-shield",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "scheme": "aldanba",
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#EEF1FC"
+      }
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Aldanba uses the camera only to scan QR codes. Links are checked offline on this device."
+        }
+      ]
+    ]
+  }
+}
