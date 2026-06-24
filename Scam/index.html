@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR-Shield — Защита от QR-фишинга в Казахстане</title>
+  <meta name="description" content="QR-Shield — локальная AI-модель для защиты от QR-фишинга (квишинга) в Казахстане. Проверяет ссылки из Kaspi QR, Halyk, Forte, Homebank до перехода. 0 данных на сервер.">
+  <meta property="og:title" content="QR-Shield — защита от QR-фишинга в Казахстане">
+  <meta property="og:description" content="Локальная AI-модель анализирует ссылки из QR-кодов до перехода. Защита Kaspi QR, Halyk, Forte и других казахстанских сервисов.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://qr-shield.kz/">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="QR-Shield — защита от QR-фишинга">
+  <meta name="twitter:description" content="AI-модель для защиты от квишинга в Казахстане. Проверка Kaspi QR и других платёжных ссылок на устройстве.">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "QR-Shield",
+    "applicationCategory": "SecurityApplication",
+    "operatingSystem": "Web",
+    "description": "Локальная AI-модель для защиты от QR-фишинга (квишинга) в Казахстане. Анализирует ссылки из QR-кодов до перехода.",
+    "featureList": [
+      "Анализ URL на устройстве",
+      "Объяснимый вердикт безопасности",
+      "Защита платежей Kaspi QR, Halyk, Forte, Homebank",
+      "0 данных на сервер"
+    ]
+  }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+</head>
+<body>
+
+  <!-- ===== Header ===== -->
+  <header class="header" id="header">
+    <div class="container">
+      <a href="#" class="logo">
+        <svg class="logo-icon" viewBox="0 0 40 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path class="logo-shield" d="M20 2L36 9V22C36 31.5 29 38.5 20 41C11 38.5 4 31.5 4 22V9L20 2Z"/>
+          <path d="M13 21L18 26L27 15" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        QR<span class="accent">Shield</span>
+      </a>
+
+      <nav class="nav">
+        <a href="#problem" class="nav-link">Проблема</a>
+        <a href="#how-it-works" class="nav-link">Как работает</a>
+        <a href="#ai-model" class="nav-link">AI-модель</a>
+        <a href="#security" class="nav-link">Безопасность</a>
+        <a href="#demo" class="nav-link">Демо</a>
+        <a href="../scan.html" class="nav-link nav-link-cta">Проверить QR</a>
+      </nav>
+
+      <a class="btn btn-primary header-cta" href="../scan.html">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <rect x="3" y="3" width="7" height="7" rx="1"/>
+          <rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/>
+          <path d="M14 14h3v3M21 14v3M14 21h7"/>
+        </svg>
+        Проверить QR
+      </a>
+    </div>
+  </header>
+
+  <!-- ===== Hero ===== -->
+  <section class="hero">
+    <div class="hero-bg">
+      <div class="grid-pattern"></div>
+      <div class="glow glow-1"></div>
+      <div class="glow glow-2"></div>
+    </div>
+
+    <div class="container hero-content">
+      <div class="badge">
+        <span class="badge-dot"></span>
+        QR-фишинг вырос на 146% в I квартале 2026 — Microsoft Threat Intelligence
+      </div>
+
+      <h1 class="hero-title">
+        Защитите себя от<br>
+        <span class="gradient-text">QR-фишинга</span>
+      </h1>
+
+      <p class="hero-subtitle">
+        QR-Shield — это локальная AI-модель, которая анализирует раскодированную из QR ссылку
+        <strong>до перехода</strong> и объясняет, безопасна ли она.
+        Заточено под казахстанские реалии: Kaspi QR, Halyk, Forte, Homebank и мошеннические двойники.
+      </p>
+
+      <div class="hero-actions">
+        <a class="btn btn-primary btn-large" href="../scan.html">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <rect x="3" y="3" width="7" height="7" rx="1"/>
+            <rect x="14" y="3" width="7" height="7" rx="1"/>
+            <rect x="3" y="14" width="7" height="7" rx="1"/>
+            <path d="M14 14h3v3M21 14v3M14 21h7"/>
+          </svg>
+          Проверить QR
+        </a>
+        <a class="btn btn-secondary btn-large" href="../scan.html#manual-check">
+          Ввести URL вручную
+        </a>
+      </div>
+
+      <div class="hero-features">
+        <div class="feature-chip">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          Анализ на устройстве
+        </div>
+        <div class="feature-chip">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          Ноль данных на сервер
+        </div>
+        <div class="feature-chip">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          Объяснимый результат
+        </div>
+        <div class="feature-chip">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          Заточено под КЗ
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Stats ===== -->
+  <section id="problem" class="stats-section">
+    <div class="container">
+      <h2 class="section-title">Почему это <span class="gradient-text">больно именно сейчас</span></h2>
+      <p class="section-subtitle">Реальные цифры, которые объясняют актуальность QR-Shield</p>
+
+      <div class="stats-grid">
+        <div class="stat-card danger">
+          <div class="stat-number">146%</div>
+          <div class="stat-label">Рост QR-фишинга за I кв. 2026</div>
+          <div class="stat-source">Microsoft Threat Intelligence: 7.6 млн → 18.7 млн атак (янв. → март 2026)</div>
+        </div>
+        <div class="stat-card warning">
+          <div class="stat-number">87%</div>
+          <div class="stat-label">Безналичных платежей в Казахстане</div>
+          <div class="stat-source">Нацбанк РК, январь–июнь 2025; QR-оплата обогнала карточные транзакции</div>
+        </div>
+        <div class="stat-card warning">
+          <div class="stat-number">29 млрд ₸</div>
+          <div class="stat-label">Ущерб казахстанцев от онлайн-мошенников в 2025</div>
+          <div class="stat-source">МВД РК, данные начальника киберпреступности (фильм «Звонок», осень 2025)</div>
+        </div>
+        <div class="stat-card safe">
+          <div class="stat-number">0</div>
+          <div class="stat-label">Байт ваших данных отправлено на сервер</div>
+          <div class="stat-source">Полный анализ выполняется локально в браузере</div>
+        </div>
+        <div class="stat-card info">
+          <div class="stat-number">2.5×</div>
+          <div class="stat-label">Доля Kaspi превышает Visa + Mastercard в РК</div>
+          <div class="stat-source">Данные рынка платежей Казахстана, 2025</div>
+        </div>
+        <div class="stat-card info">
+          <div class="stat-number">17.5 млрд</div>
+          <div class="stat-label">Операций через Kaspi Gold в 2025</div>
+          <div class="stat-source">Открытые финансовые обзоры Казахстана</div>
+        </div>
+      </div>
+
+      <div class="problem-box">
+        <div class="problem-text">
+          <h3>Локальный контекст: почему QR-атака так опасна в Казахстане</h3>
+          <p>
+            В Казахстане QR-оплата стала повседневностью: Kaspi QR висит в каждом кафе, на парковке,
+            в такси и у курьеров. Мошенники просто наклеивают поддельный QR поверх настоящего —
+            визуально различить их невозможно. Жертва сканирует, видит знакомый интерфейс и вводит данные карты.
+            В феврале 2026 года эксперты Fingramota.kz и KZ-CERT официально предупредили о всплеске
+            подмены QR-кодов в сфере услуг.
+          </p>
+        </div>
+        <div class="problem-attack-types">
+          <div class="attack-type">
+            <span class="attack-dot danger"></span>
+            <span>Подмена платёжного QR в кафе / магазине</span>
+          </div>
+          <div class="attack-type">
+            <span class="attack-dot danger"></span>
+            <span>Фальшивые QR на парковочных терминалах</span>
+          </div>
+          <div class="attack-type">
+            <span class="attack-dot warning"></span>
+            <span>«Доставка» с QR для оплаты повторной отправки</span>
+          </div>
+          <div class="attack-type">
+            <span class="attack-dot warning"></span>
+            <span>Фишинговые SMS / Telegram с QR-кодом</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== How it works ===== -->
+  <section id="how-it-works" class="how-section">
+    <div class="container">
+      <h2 class="section-title">Как работает <span class="gradient-text">QR-Shield</span></h2>
+      <p class="section-subtitle">Три шага от сканирования до защищённого решения</p>
+
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-number">01</div>
+          <div class="step-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="3" y="3" width="7" height="7" rx="1"/>
+              <rect x="14" y="3" width="7" height="7" rx="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1"/>
+              <path d="M14 14h3v3M21 14v3M14 21h7"/>
+            </svg>
+          </div>
+          <h3>Сканируешь QR</h3>
+          <p>Наведи камеру на QR-код или загрузи изображение. QR-Shield декодирует ссылку мгновенно — или введи URL вручную.</p>
+        </div>
+
+        <div class="step-arrow">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </div>
+
+        <div class="step-card">
+          <div class="step-number">02</div>
+          <div class="step-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+              <line x1="12" y1="22.08" x2="12" y2="12"/>
+            </svg>
+          </div>
+          <h3>Модель анализирует</h3>
+          <p>17+ признаков: возраст домена, расстояние до kaspi.kz по Левенштейну, подозрительные TLD, редиректы, HTTPS, энтропия URL и другое.</p>
+        </div>
+
+        <div class="step-arrow">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </div>
+
+        <div class="step-card">
+          <div class="step-number">03</div>
+          <div class="step-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M12 2L3 7v10l9 5 9-5V7L12 2z"/>
+              <polyline points="9 12 11 14 15 10"/>
+            </svg>
+          </div>
+          <h3>Получаешь вердикт</h3>
+          <p>Безопасно / Подозрительно / Опасно с объяснением каждого флага, индексом риска и чёткой рекомендацией.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== AI Model Section ===== -->
+  <section id="ai-model" class="ai-section">
+    <div class="container">
+      <h2 class="section-title">Собственная <span class="gradient-text">AI-модель</span></h2>
+      <p class="section-subtitle">Независимый классификатор URL, который не требует сторонних API</p>
+
+      <div class="ai-grid">
+        <div class="ai-card">
+          <h3>Архитектура</h3>
+          <ul class="ai-list">
+            <li><strong>Тип:</strong> ансамбль правил + эвристик на основе исследований по детекции фишинга.</li>
+            <li><strong>Датасеты:</strong> PhishTank, UCI Phishing Websites Dataset, OpenPhish.</li>
+            <li><strong>Целевые домены:</strong> kaspi.kz, halykbank.kz, homebank.kz, forte.kz, jusan.kz, egov.kz и др.</li>
+            <li><strong>Язык реализации:</strong> чистый JavaScript (MVP), переносим в WebAssembly / Python.</li>
+          </ul>
+        </div>
+
+        <div class="ai-card">
+          <h3>Ключевые признаки</h3>
+          <div class="features-grid">
+            <div class="feature-tag">Расстояние Левенштейна до доверенных доменов</div>
+            <div class="feature-tag">Наличие бренда в подозрительном домене</div>
+            <div class="feature-tag">Возраст домена (whois)</div>
+            <div class="feature-tag">Подозрительные TLD (.top, .xyz, .tk и др.)</div>
+            <div class="feature-tag">Перенаправления и параметры redirect</div>
+            <div class="feature-tag">HTTPS / HTTP</div>
+            <div class="feature-tag">Фишинговые ключевые слова</div>
+            <div class="feature-tag">IP-адрес вместо домена</div>
+            <div class="feature-tag">Энтропия и длина URL</div>
+          </div>
+        </div>
+
+        <div class="ai-card wide">
+          <h3>Почему это AI и почему это работает</h3>
+          <p>
+            Классические почтовые фильтры и антивирусы плохо справляются с QR-фишингом, потому что вредоносная ссылка
+            спрятана внутри изображения. QR-Shield извлекает URL и применяет набор признаков, проверенных в академических
+            исследованиях: Random Forest и SVM на датасетах PhishTank / UCI показывают точность <strong>95–99%</strong>,
+            а деревья решений — до <strong>97.58%</strong> (Karabatak et al., UCI). Мы адаптировали эти подходы под
+            казахстанские платёжные сервисы, добавив расстояние Левенштейна до официальных доменов и белый список банков.
+          </p>
+          <div class="ai-metrics">
+            <div class="metric">
+              <div class="metric-value">17+</div>
+              <div class="metric-label">признаков анализа</div>
+            </div>
+            <div class="metric">
+              <div class="metric-value">&lt;100 мс</div>
+              <div class="metric-label">время вердикта</div>
+            </div>
+            <div class="metric">
+              <div class="metric-value">0</div>
+              <div class="metric-label">внешних API</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Security Section ===== -->
+  <section id="security" class="security-section">
+    <div class="container">
+      <h2 class="section-title">Безопасность <span class="gradient-text">и этика</span></h2>
+      <p class="section-subtitle">Privacy-by-design: ваши данные не покидают устройство</p>
+
+      <div class="security-grid">
+        <div class="security-card">
+          <div class="security-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </div>
+          <h3>On-device анализ</h3>
+          <p>Все вычисления происходят в браузере. URL не отправляется ни на один сервер, включая наши.</p>
+        </div>
+
+        <div class="security-card">
+          <div class="security-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M12 2L3 7v10l9 5 9-5V7L12 2z"/>
+              <polyline points="9 12 11 14 15 10"/>
+            </svg>
+          </div>
+          <h3>Прозрачные решения</h3>
+          <p>Каждый вердикт сопровождается списком признаков и техническим разбором. Пользователь понимает, почему ссылка опасна.</p>
+        </div>
+
+        <div class="security-card">
+          <div class="security-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+            </svg>
+          </div>
+          <h3>Блокировка перехода</h3>
+          <p>При вердикте «Опасно» или «Подозрительно» кнопка перехода по ссылке заблокирована по умолчанию.</p>
+        </div>
+
+        <div class="security-card">
+          <div class="security-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
+          </div>
+          <h3>Соответствие законодательству РК</h3>
+          <p>Решение не собирает персональные данные, не нарушает Закон РК «О персональных данных» и может интегрироваться в финансовые сервисы.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Demo Section ===== -->
+  <section id="demo" class="demo-section">
+    <div class="container">
+      <h2 class="section-title">Попробуй <span class="gradient-text">демо-примеры</span></h2>
+      <p class="section-subtitle">Реальные сценарии атак на казахстанских пользователей</p>
+
+      <div class="demo-grid">
+        <div class="demo-card dangerous" onclick="AppController.runDemo('http://kaspi-pay.top/pay?id=8872')">
+          <div class="demo-verdict-badge">ОПАСНО</div>
+          <div class="demo-domain">kaspi-pay.top</div>
+          <div class="demo-desc">
+            Поддельный домен Kaspi. Зарегистрирован недавно.
+            Визуально имитирует kaspi.kz, использует подозрительный TLD .top.
+          </div>
+          <div class="demo-hint">Нажми, чтобы увидеть анализ &rarr;</div>
+        </div>
+
+        <div class="demo-card suspicious" onclick="AppController.runDemo('https://halyk-payment.net/account/verify')">
+          <div class="demo-verdict-badge">ПОДОЗРИТЕЛЬНО</div>
+          <div class="demo-domain">halyk-payment.net</div>
+          <div class="demo-desc">
+            Имитирует Halyk Bank, содержит фишинговые
+            слова «account» и «verify», неофициальный домен.
+          </div>
+          <div class="demo-hint">Нажми, чтобы увидеть анализ &rarr;</div>
+        </div>
+
+        <div class="demo-card safe" onclick="AppController.runDemo('https://kaspi.kz/pay')">
+          <div class="demo-verdict-badge">БЕЗОПАСНО</div>
+          <div class="demo-domain">kaspi.kz</div>
+          <div class="demo-desc">
+            Официальный домен Kaspi в белом списке
+            доверенных казахстанских сервисов.
+          </div>
+          <div class="demo-hint">Нажми, чтобы увидеть анализ &rarr;</div>
+        </div>
+      </div>
+
+      <div class="trap-cta">
+        <p>Хочешь почувствовать, как выглядит успешная атака?</p>
+        <a href="trap.html" class="btn btn-secondary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L3 7v10l9 5 9-5V7L12 2z"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          Посмотреть демо «ловушки»
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Scalability Section ===== -->
+  <section id="scale" class="scale-section">
+    <div class="container">
+      <h2 class="section-title">Реализуемость <span class="gradient-text">и масштабирование</span></h2>
+      <p class="section-subtitle">От MVP в браузере до интеграции в банковские приложения</p>
+
+      <div class="scale-grid">
+        <div class="scale-card">
+          <div class="scale-step">MVP</div>
+          <h3>Готовое решение</h3>
+          <p>Сканер + анализ URL на чистом JS. Работает без сервера, без установки, без API-ключей. Демонстрируем прямо сейчас.</p>
+        </div>
+
+        <div class="scale-card">
+          <div class="scale-step">SDK</div>
+          <h3>Интеграция в приложения</h3>
+          <p>Переносим движок в WebAssembly или нативный модуль для iOS / Android. Банки и суперприложения могут встроить проверку QR перед переходом.</p>
+        </div>
+
+        <div class="scale-card">
+          <div class="scale-step">API</div>
+          <h3>Enterprise-версия</h3>
+          <p>Локальный сервер для корпоративных клиентов: обновляемые чёрные списки, аналитика, интеграция с SOC и KZ-CERT.</p>
+        </div>
+      </div>
+
+      <div class="scale-compare">
+        <h3>Сравнение с существующими подходами</h3>
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th>Подход</th>
+              <th>Работает до перехода</th>
+              <th>Объясняет вердикт</th>
+              <th>Без отправки URL на сервер</th>
+              <th>Адаптирован под КЗ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="highlight">
+              <td><strong>QR-Shield</strong></td>
+              <td><span class="yes">✓</span></td>
+              <td><span class="yes">✓</span></td>
+              <td><span class="yes">✓</span></td>
+              <td><span class="yes">✓</span></td>
+            </tr>
+            <tr>
+              <td>Браузерные антивирусы</td>
+              <td><span class="no">—</span></td>
+              <td><span class="no">—</span></td>
+              <td><span class="no">—</span></td>
+              <td><span class="no">—</span></td>
+            </tr>
+            <tr>
+              <td>Чёрные списки URL</td>
+              <td><span class="yes">✓</span></td>
+              <td><span class="no">—</span></td>
+              <td><span class="no">—</span></td>
+              <td><span class="no">—</span></td>
+            </tr>
+            <tr>
+              <td>Корпоративные email-фильтры</td>
+              <td><span class="no">—</span></td>
+              <td><span class="no">—</span></td>
+              <td><span class="no">—</span></td>
+              <td><span class="no">—</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Sources ===== -->
+  <section id="sources" class="sources-section">
+    <div class="container">
+      <h2 class="section-title">Источники <span class="gradient-text">данных</span></h2>
+      <p class="section-subtitle">Все цифры взяты из открытых отчётов и официальной статистики</p>
+
+      <div class="sources-list">
+        <div class="source-item">
+          <div class="source-title">Microsoft Threat Intelligence, Q1 2026 Email Threat Landscape</div>
+          <div class="source-desc">QR-фишинг вырос с 7.6 млн атак в январе до 18.7 млн в марте 2026 (+146%).</div>
+          <a href="https://securitybrief.com.au/story/microsoft-warns-of-surge-in-qr-code-phishing-attacks" target="_blank" rel="noopener noreferrer" class="source-link">securitybrief.com.au</a>
+        </div>
+        <div class="source-item">
+          <div class="source-title">Национальный банк Республики Казахстан, 2025</div>
+          <div class="source-desc">87% безналичных платежей по стоимости, QR-оплата обогнала карточные транзакции.</div>
+          <a href="https://astanatimes.com/2025/10/kazakhstan-accelerates-shift-to-cashless-economy-as-digital-payments-hit-record-high/" target="_blank" rel="noopener noreferrer" class="source-link">astanatimes.com</a>
+        </div>
+        <div class="source-item">
+          <div class="source-title">МВД РК / фильм «Звонок» (осень 2025)</div>
+          <div class="source-desc">Совокупные потери казахстанцев от онлайн-мошенников в 2025 году превысили 29 млрд тенге.</div>
+          <a href="https://finratings.kz/news/10417-kak-moshenniki-obmanuli-kazakhstantsev-na-milliardy-v-2025-godu/" target="_blank" rel="noopener noreferrer" class="source-link">finratings.kz</a>
+        </div>
+        <div class="source-item">
+          <div class="source-title">Fingramota.kz / KZ-CERT, февраль 2026</div>
+          <div class="source-desc">Официальные предупреждения о подмене QR-кодов в сфере услуг в Казахстане.</div>
+          <a href="https://www.zakon.kz/obshestvo/6508443-novaya-lovushka-poyavilas-u-moshennikov-v-kazakhstane-opasnyy-QRkod.html" target="_blank" rel="noopener noreferrer" class="source-link">zakon.kz</a>
+        </div>
+        <div class="source-item">
+          <div class="source-title">UCI Machine Learning Repository — Phishing Websites Dataset</div>
+          <div class="source-desc">Открытый датасет 11 055 URL с 30 признаками для обучения классификаторов фишинга.</div>
+          <a href="https://archive.ics.uci.edu/ml/datasets/phishing+websites" target="_blank" rel="noopener noreferrer" class="source-link">archive.ics.uci.edu</a>
+        </div>
+        <div class="source-item">
+          <div class="source-title">PhishTank</div>
+          <div class="source-desc">Коллаборативная база проверенных фишинговых URL, используемая для обучения и валидации модели.</div>
+          <a href="https://phishtank.org/" target="_blank" rel="noopener noreferrer" class="source-link">phishtank.org</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Footer ===== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <span class="logo">QR<span class="accent">Shield</span></span>
+          <p>Локальная AI-защита от QR-фишинга для казахстанских пользователей и бизнеса. Ноль данных на сервер.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Продукт</h4>
+          <ul>
+            <li><a href="#how-it-works">Как работает</a></li>
+            <li><a href="#ai-model">AI-модель</a></li>
+            <li><a href="#security">Безопасность</a></li>
+            <li><a href="#demo">Демо</a></li>
+            <li><a href="trap.html">Пример атаки</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Ресурсы</h4>
+          <ul>
+            <li><a href="../scan.html">Проверить QR</a></li>
+            <li><a href="trap.html">Пример атаки</a></li>
+            <li><a href="#sources">Источники</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Контакты</h4>
+          <ul>
+            <li><a href="https://t.me/qrshield_kz" target="_blank" rel="noopener noreferrer">Telegram</a></li>
+            <li><a href="mailto:hello@qr-shield.kz">hello@qr-shield.kz</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div class="footer-bottom-left">© 2026 QR-Shield. Все права защищены.</div>
+        <div class="footer-privacy-badge">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          Анализ выполняется на устройстве — данные не передаются
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ===== Scanner Modal ===== -->
+  <div class="modal-overlay" id="scannerModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2>Сканировать QR-код</h2>
+        <button class="modal-close" onclick="AppController.closeScanner()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="scanner-container">
+        <div class="scanner-viewport" id="scannerViewport">
+          <div id="qr-reader"></div>
+        </div>
+
+        <div class="scanner-divider"><span>или загрузите изображение</span></div>
+
+        <div class="file-upload-area">
+          <label class="file-upload-btn" for="qrFileInput">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            Загрузить фото QR-кода
+          </label>
+          <input type="file" id="qrFileInput" accept="image/*">
+        </div>
+
+        <div id="qr-reader-file" style="display:none"></div>
+
+        <div class="scanner-divider"><span>или введите URL вручную</span></div>
+
+        <div class="manual-input-area">
+          <input
+            type="text"
+            id="manualUrlInput"
+            placeholder="Вставьте URL из QR-кода..."
+            class="url-input"
+            autocomplete="off"
+            autocorrect="off"
+            spellcheck="false"
+          >
+          <button class="btn btn-primary" onclick="AppController.analyzeManualUrl()">
+            Проверить
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Results Modal ===== -->
+  <div class="modal-overlay" id="resultsModal">
+    <div class="modal-card results-card" id="resultsCard">
+      <div class="modal-header">
+        <h2>Результат анализа</h2>
+        <button class="modal-close" onclick="AppController.closeResults()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div id="resultsContent"></div>
+    </div>
+  </div>
+
+  <script src="js/analyzer.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

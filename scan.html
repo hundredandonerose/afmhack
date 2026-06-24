@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>QR-Shield — проверка QR-кода</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#16202E;
+    --ink-soft:#334252;
+    --muted:#647587;
+    --faint:#8FA0AF;
+    --bg:#F7F9FB;
+    --bg-soft:#EDF4F6;
+    --card:#FFFFFF;
+    --card-soft:#F2F7F8;
+    --accent:#0E7C86;
+    --accent-strong:#0A646C;
+    --accent-soft:#E0F1F3;
+    --accent-line:#B7D9DD;
+    --line:#E3ECF2;
+    --line-strong:#C9D8E2;
+    --green:#15803D;
+    --green-strong:#0F6A31;
+    --green-soft:#F0FDF4;
+    --green-line:#BFE3CD;
+    --amber:#B45309;
+    --amber-strong:#92400E;
+    --amber-soft:#FFF2E2;
+    --amber-line:#F0CF9B;
+    --red:#DC2626;
+    --red-soft:#FFF7F7;
+    --red-line:#F3B9B9;
+    --nav:#102733;
+    --nav-mid:#173641;
+    --nav-text:#EAF4F5;
+    --shadow:0 16px 42px color-mix(in srgb, var(--ink) 10%, transparent);
+    --shadow-soft:0 8px 22px color-mix(in srgb, var(--ink) 8%, transparent);
+    --radius:14px;
+    --radius-lg:20px;
+    --font-display:"Manrope",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    --font-body:"Source Sans 3",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 78% 8%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 32%),
+      linear-gradient(145deg, var(--nav) 0%, var(--nav-mid) 42%, var(--bg) 100%);
+    color:var(--ink);
+    font-family:var(--font-body);
+    font-size:17px;
+    line-height:1.62;
+    -webkit-font-smoothing:antialiased;
+  }
+  button,input{font:inherit}
+  button{cursor:pointer}
+  a{color:inherit;text-decoration:none}
+  svg{display:block}
+  :focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 45%,transparent);outline-offset:3px}
+  .scan-page{width:100%;min-height:100vh;padding:16px 24px 44px}
+  .scan-header{
+    width:min(1120px,100%);
+    margin:0 auto 66px;
+    background:var(--nav);
+    border:1px solid color-mix(in srgb,var(--card) 12%,transparent);
+    border-radius:999px;
+    padding:10px 12px 10px 24px;
+    box-shadow:0 18px 44px color-mix(in srgb,var(--nav) 28%,transparent);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+  }
+  .brand{display:flex;align-items:center;gap:10px;color:var(--nav-text);font-family:var(--font-display);font-size:20px;font-weight:800;letter-spacing:-.02em}
+  .brand svg{width:34px;height:34px;flex:0 0 auto;color:var(--accent)}
+  .brand span{color:color-mix(in srgb,var(--accent-soft) 78%,var(--card))}
+  .brand .logo-shield{fill:currentColor;stroke:color-mix(in srgb,currentColor 55%,var(--card));stroke-width:1}
+  .back-link{
+    min-height:48px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    padding:9px 18px;
+    border-radius:999px;
+    background:color-mix(in srgb,var(--card) 8%,transparent);
+    border:1px solid color-mix(in srgb,var(--card) 14%,transparent);
+    color:color-mix(in srgb,var(--nav-text) 78%,transparent);
+    font-family:var(--font-display);
+    font-size:13px;
+    font-weight:700;
+    transition:color .18s ease,border-color .18s ease;
+    white-space:nowrap;
+  }
+  .back-link:hover{color:var(--nav-text);border-color:color-mix(in srgb,var(--card) 24%,transparent)}
+  .wrap{width:100%;max-width:610px;margin:0 auto}
+  .privacy-chip{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    min-height:34px;
+    margin-bottom:14px;
+    padding:6px 14px;
+    border-radius:999px;
+    background:color-mix(in srgb,var(--card) 11%,transparent);
+    border:1px solid color-mix(in srgb,var(--card) 18%,transparent);
+    color:color-mix(in srgb,var(--nav-text) 78%,transparent);
+    font-size:13px;
+    font-weight:700;
+  }
+  .privacy-chip::before{content:"";width:8px;height:8px;border-radius:999px;background:var(--green)}
+  .head{display:flex;align-items:center;gap:10px;color:var(--nav-text);margin:0 2px 10px}
+  .dot{width:10px;height:10px;border-radius:999px;background:var(--accent-soft);box-shadow:0 0 0 6px color-mix(in srgb,var(--accent-soft) 20%,transparent)}
+  .head b{font-family:var(--font-display);font-size:38px;line-height:1.08;font-weight:800;letter-spacing:-.035em}
+  .tag{max-width:62ch;margin:0 2px 24px;color:color-mix(in srgb,var(--nav-text) 76%,transparent);font-size:17px;line-height:1.65}
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius-lg);
+    padding:22px;
+    box-shadow:var(--shadow);
+  }
+  .camera-note{
+    margin:0 0 14px;
+    padding:13px 15px;
+    border:1px solid var(--accent-line);
+    border-radius:var(--radius);
+    background:var(--accent-soft);
+    color:var(--ink-soft);
+    font-size:14px;
+    line-height:1.5;
+  }
+  .camera-note[hidden]{display:none}
+  #reader{border-radius:var(--radius);overflow:hidden;background:var(--nav)}
+  #reader:empty{display:none}
+  .btn{
+    min-height:48px;
+    width:100%;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    margin-top:12px;
+    padding:13px 22px;
+    border:0;
+    border-radius:999px;
+    background:var(--accent);
+    color:var(--card);
+    box-shadow:0 10px 28px color-mix(in srgb,var(--accent) 22%,transparent);
+    font-family:var(--font-display);
+    font-size:15px;
+    font-weight:700;
+    line-height:1;
+    transition:transform .18s ease,background .18s ease,box-shadow .18s ease,border-color .18s ease;
+    white-space:nowrap;
+  }
+  .btn:hover{background:var(--accent-strong);transform:translateY(-1px)}
+  .btn.ghost{width:auto;margin-top:0;background:var(--card);color:var(--ink);border:1px solid var(--line-strong);box-shadow:var(--shadow-soft)}
+  .btn.ghost:hover{border-color:var(--accent-line);color:var(--accent-strong);background:var(--card)}
+  .or{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:14px;margin:18px 0}
+  .or::before,.or::after{content:"";height:1px;background:var(--line);flex:1}
+  .row{display:flex;gap:10px}
+  .in{
+    flex:1;
+    min-width:0;
+    min-height:48px;
+    padding:12px 14px;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    background:var(--card-soft);
+    color:var(--ink);
+    font-size:16px;
+    outline:none;
+    transition:border-color .18s ease,box-shadow .18s ease,background .18s ease;
+  }
+  .in::placeholder{color:var(--faint)}
+  .in:focus{background:var(--card);border-color:var(--accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 14%,transparent)}
+  .res{
+    display:none;
+    margin-top:18px;
+    border-radius:var(--radius);
+    padding:18px;
+    border:1px solid var(--line);
+    background:var(--card-soft);
+  }
+  .res.show{display:block;animation:pop .24s ease}
+  @keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .vd{display:flex;align-items:center;gap:10px;color:var(--ink);font-family:var(--font-display);font-size:21px;font-weight:800;letter-spacing:-.01em}
+  .host{font-family:ui-monospace,"SFMono-Regular",Consolas,monospace;font-size:13px;color:var(--muted);word-break:break-all;margin:8px 0 12px}
+  .bar{height:9px;border-radius:999px;background:var(--line);overflow:hidden}
+  .fill{height:100%;width:0;transition:width .5s ease}
+  ul{list-style:none;padding:0;margin:13px 0 0}
+  li{display:flex;gap:8px;font-size:15px;line-height:1.5;margin:8px 0;color:var(--ink-soft)}
+  li::before{content:"";width:6px;height:6px;margin-top:9px;border-radius:999px;background:var(--accent);flex:0 0 auto}
+  .green{background:var(--green-soft);border-color:var(--green-line)} .green .fill{background:var(--green)}
+  .yellow{background:var(--amber-soft);border-color:var(--amber-line)} .yellow .fill{background:var(--amber)}
+  .red{background:var(--red-soft);border-color:var(--red-line)} .red .fill{background:var(--red)}
+  .open{margin-top:14px}
+  .open.g{background:var(--green)}
+  .open.g:hover{background:var(--green-strong)}
+  .open.y{background:var(--amber)}
+  .open.y:hover{background:var(--amber-strong)}
+  .blocked{margin-top:14px;text-align:center;color:var(--red);font-weight:700;font-size:15px}
+  .foot{color:var(--muted);font-size:13px;text-align:center;margin:16px 0 0;line-height:1.5}
+  @media (max-width:600px){
+    .scan-page{padding:12px 16px 28px}
+    .scan-header{margin-bottom:54px;padding:10px 10px 10px 18px}
+    .brand{font-size:18px}
+    .back-link{width:48px;height:48px;padding:0;font-size:0}
+    .back-link svg{width:17px;height:17px}
+    .head b{font-size:32px}
+    .tag{font-size:16px;margin-bottom:20px}
+    .card{padding:18px;border-radius:18px}
+    .row{flex-direction:column}
+    .btn.ghost{width:100%;min-height:48px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+  }
+</style>
+</head>
+<body>
+<div class="scan-page">
+  <header class="scan-header">
+    <a class="brand" href="Scam/index.html" aria-label="На главную QR-Shield">
+      <svg viewBox="0 0 40 42" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path class="logo-shield" d="M20 2L36 9V22C36 31.5 29 38.5 20 41C11 38.5 4 31.5 4 22V9L20 2Z"/>
+        <path d="M13 21L18 26L27 15" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      QR<span>Shield</span>
+    </a>
+    <a class="back-link" href="Scam/index.html" aria-label="Вернуться на главную">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
+        <path d="M19 12H5"/>
+        <path d="M12 19l-7-7 7-7"/>
+      </svg>
+      На главную
+    </a>
+  </header>
+
+  <main class="wrap">
+    <div class="privacy-chip">Анализ на устройстве</div>
+    <div class="head"><span class="dot" aria-hidden="true"></span><b>Проверить QR</b></div>
+    <p class="tag">Наведите камеру на QR-код или вставьте ссылку вручную. QR-Shield покажет риск до перехода.</p>
+
+    <div class="card">
+      <p class="camera-note" id="cameraHint" role="status" aria-live="polite" hidden>
+        Камера недоступна. Проверьте, что страница открыта по HTTPS, нажмите на значок замка в адресной строке и разрешите доступ к камере. Ручная проверка ниже работает всегда.
+      </p>
+
+      <div id="reader" aria-label="Область сканирования QR-кода"></div>
+      <button class="btn" id="scan" type="button" aria-label="Запустить сканирование QR-кода">Сканировать QR-код</button>
+
+      <div class="or" id="manual-check">или</div>
+      <div class="row">
+        <input class="in" id="url" placeholder="Вставьте ссылку вручную" autocomplete="off" spellcheck="false" aria-label="Ссылка для проверки">
+        <button class="btn ghost" id="go" type="button">Проверить</button>
+      </div>
+
+      <div class="res" id="res" aria-live="polite">
+        <div class="vd" id="vd"></div>
+        <div class="host" id="host"></div>
+        <div class="bar" aria-hidden="true"><div class="fill" id="fill"></div></div>
+        <ul id="reasons"></ul>
+        <div id="action"></div>
+      </div>
+
+      <p class="foot">Модель машинного обучения работает офлайн в браузере.<br>
+         Ссылка никуда не отправляется.</p>
+    </div>
+  </main>
+</div>
+
+<script src="qrshield_model_data.js"></script>
+<script src="qrshield.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script>
+  const $ = id => document.getElementById(id);
+  const LABEL = {green:"Безопасно", yellow:"Осторожно", red:"Опасно — не открывайте"};
+  const ICON  = {green:"🟢", yellow:"🟡", red:"🔴"};
+
+  function show(url){
+    const d = window.qrShieldAssess(url);
+    const res = $("res");
+    res.className = "res show " + d.verdict;
+    $("vd").textContent = ICON[d.verdict] + "  " + LABEL[d.verdict];
+    $("host").textContent = d.host || url;
+    $("fill").style.width = (d.risk || 0) + "%";
+    $("reasons").innerHTML = (d.reasons || []).map(x => "<li>" + x + "</li>").join("");
+    const a = $("action");
+    if (d.verdict === "green")
+      a.innerHTML = `<button class="btn open g" onclick="window.open('${url}','_blank')">Открыть сайт</button>`;
+    else if (d.verdict === "yellow")
+      a.innerHTML = `<button class="btn open y" onclick="window.open('${url}','_blank')">Всё равно открыть (на свой риск)</button>`;
+    else
+      a.innerHTML = `<div class="blocked">Открытие заблокировано для вашей безопасности</div>`;
+    res.scrollIntoView({behavior:"smooth", block:"nearest"});
+  }
+
+  $("go").addEventListener("click", () => { const u=$("url").value.trim(); if(u) show(u); });
+  $("url").addEventListener("keydown", e => { if(e.key==="Enter"){ const u=$("url").value.trim(); if(u) show(u); }});
+
+  // Camera scanning (requires HTTPS or localhost)
+  let scanner = null, scanning = false;
+  $("scan").addEventListener("click", async () => {
+    $("cameraHint").hidden = true;
+    if (scanning) { await scanner.stop(); scanning=false; $("scan").textContent="Сканировать QR-код"; return; }
+    if (!scanner) scanner = new Html5Qrcode("reader");
+    try {
+      scanning = true; $("scan").textContent = "Остановить камеру";
+      await scanner.start({facingMode:"environment"}, {fps:10, qrbox:{width:230,height:230}},
+        async (text) => { await scanner.stop(); scanning=false;
+          $("scan").textContent="Сканировать ещё раз"; show(text); });
+    } catch (e) {
+      scanning = false; $("scan").textContent="Сканировать QR-код";
+      $("cameraHint").hidden = false;
+      $("url").focus();
+    }
+  });
+</script>
+</body>
+</html>
