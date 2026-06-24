@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { DimensionValue, ScrollView, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
 import { colors, radii, shadow } from "../theme/colors";
 import { getHistory } from "../storage/history";
@@ -34,26 +35,28 @@ export function StatsScreen() {
   }, [items]);
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Статистика</Text>
-      <Text style={styles.subtitle}>График строится только из реальной истории на этом устройстве.</Text>
+    <SafeAreaView style={styles.screen} edges={["top", "left", "right"]}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <Text style={styles.title}>Статистика</Text>
+        <Text style={styles.subtitle}>График строится только из реальной истории на этом устройстве.</Text>
 
-      <View style={styles.cards}>
-        <StatCard label="Проверено" value={items.length} />
-        <StatCard label="Заблокировано" value={stats.red} tone="red" />
-      </View>
-      <View style={styles.cards}>
-        <StatCard label="Под вопросом" value={stats.yellow} tone="amber" />
-        <StatCard label="Безопасно" value={stats.green} tone="green" />
-      </View>
+        <View style={styles.cards}>
+          <StatCard label="Проверено" value={items.length} />
+          <StatCard label="Заблокировано" value={stats.red} tone="red" />
+        </View>
+        <View style={styles.cards}>
+          <StatCard label="Под вопросом" value={stats.yellow} tone="amber" />
+          <StatCard label="Безопасно" value={stats.green} tone="green" />
+        </View>
 
-      <View style={styles.chartCard}>
-        <Text style={styles.cardTitle}>Verdict bar chart</Text>
-        <Bar label="Безопасно" value={stats.green} total={stats.total} color={colors.green} />
-        <Bar label="Осторожно" value={stats.yellow} total={stats.total} color={colors.amber} />
-        <Bar label="Опасно" value={stats.red} total={stats.total} color={colors.red} />
-      </View>
-    </ScrollView>
+        <View style={styles.chartCard}>
+          <Text style={styles.cardTitle}>Итоги проверок</Text>
+          <Bar label="Безопасно" value={stats.green} total={stats.total} color={colors.green} />
+          <Bar label="Осторожно" value={stats.yellow} total={stats.total} color={colors.amber} />
+          <Bar label="Опасно" value={stats.red} total={stats.total} color={colors.red} />
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -78,15 +81,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg,
   },
   content: {
-    padding: 18,
+    paddingHorizontal: 16,
+    paddingTop: 8,
     paddingBottom: 120,
   },
   title: {
-    marginTop: 12,
     color: colors.text,
-    fontSize: 34,
+    fontSize: 30,
     fontWeight: "900",
-    letterSpacing: -0.8,
   },
   subtitle: {
     color: colors.muted,

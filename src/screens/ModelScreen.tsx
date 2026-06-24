@@ -1,5 +1,6 @@
-import { ScrollView, StyleSheet, Text, View } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
+import { useState } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { getModelInfo } from "../ml/qrshieldEngine";
 import { colors, radii, shadow } from "../theme/colors";
@@ -10,53 +11,100 @@ type Props = {
 };
 
 export function ModelScreen({ modelMeta }: Props) {
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const info = getModelInfo();
+
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <LinearGradient colors={[colors.deep, colors.primary]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
-        <Ionicons name="hardware-chip" color={colors.surface} size={34} />
-        <Text style={styles.heroTitle}>О модели</Text>
-        <Text style={styles.heroText}>Собственная offline ML-модель для риск-флагов QR-ссылок. Без ChatGPT, API и сервера.</Text>
-      </LinearGradient>
+    <SafeAreaView style={styles.screen} edges={["top", "left", "right"]}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.header}>
+          <View style={styles.logo}>
+            <Ionicons name="shield-checkmark" color={colors.surface} size={22} />
+          </View>
+          <View style={styles.headerText}>
+            <Text style={styles.title}>Как работает Aldanba</Text>
+            <Text style={styles.subtitle}>
+              Проверяет ссылку из QR прямо на телефоне, ещё до открытия. Ничего не отправляет в интернет.
+            </Text>
+          </View>
+        </View>
 
-      <View style={styles.grid}>
-        <Info label="Тип" value="Gradient Boosted Trees" />
-        <Info label="Признаки" value={`${info.features}`} />
-        <Info label="Деревья" value={`${info.trees}`} />
-        <Info label="Узлы" value={`${info.nodes}`} />
-      </View>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Что мы проверяем</Text>
+          <Check text="Подделки под банки и сервисы: kaspi, halyk, egov и другие." />
+          <Check text="Подозрительные адреса, странные домены и маскировку ссылок." />
+          <Check text="Скрытые и сокращённые ссылки, где реальный адрес не виден сразу." />
+          <Check text="Новые незнакомые сайты, особенно если QR пришёл из непонятного источника." />
+        </View>
 
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Версия модели</Text>
-        <Text style={styles.body}>Источник: {modelMeta.source === "cached" ? "кешированная модель" : "встроенная модель"}</Text>
-        <Text style={styles.body}>Версия: {modelMeta.version}</Text>
-        <Text style={styles.body}>Дата: {modelMeta.date}</Text>
-        <Text style={styles.body}>Accuracy: ≈97.6%. Это честная оценка, не гарантия и не 99%.</Text>
-      </View>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Что значит цвет</Text>
+          <Meaning color={colors.green} icon="🟢" title="Безопасно" text="известный сайт или явных признаков угрозы нет." />
+          <Meaning color={colors.amber} icon="🟡" title="Осторожно" text="ссылка скрыта или сайт пока незнаком." />
+          <Meaning color={colors.red} icon="🔴" title="Опасно" text="похоже на подделку, открытие блокируется." />
+        </View>
 
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Как принимать вердикт</Text>
-        <Text style={styles.body}>🟢 green: явных признаков фишинга не обнаружено.</Text>
-        <Text style={styles.body}>🟡 yellow: осторожно, ссылка скрыта или домен незнакомый.</Text>
-        <Text style={styles.body}>🔴 red: высокий риск, открытие блокируется.</Text>
-      </View>
+        <View style={styles.note}>
+          <Text style={styles.noteText}>
+            Собственная ML-модель работает офлайн. Точность на тестовой выборке ≈97,6%, это оценка риска, не гарантия.
+          </Text>
+        </View>
 
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Честность по Казахстану</Text>
-        <Text style={styles.body}>
-          KZ-покрытие сейчас основано на allowlist банков, look-alike правилах и fail-safe поведении.
-          Незнакомый .kz домен уходит в 🟡 by design. Казахская fine-tuning модель в roadmap.
-        </Text>
-      </View>
-    </ScrollView>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Важно про Казахстан</Text>
+          <Text style={styles.body}>
+            Aldanba использует выверенный список доверенных сервисов и защиту от подделок. Мы не пишем, что модель
+            обучена на казахстанских данных: такое дообучение в планах.
+          </Text>
+          <Text style={styles.body}>
+            Если домен .kz новый и явных признаков угрозы нет, приложение показывает «осторожно», а не «опасно».
+          </Text>
+        </View>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={detailsOpen ? "Скрыть технические детали" : "Показать технические детали"}
+          onPress={() => setDetailsOpen((value) => !value)}
+          style={({ pressed }) => [styles.detailsButton, pressed && styles.pressed]}
+        >
+          <Text style={styles.detailsButtonText}>Подробнее</Text>
+          <Ionicons name={detailsOpen ? "chevron-up" : "chevron-down"} color={colors.primary} size={20} />
+        </Pressable>
+
+        {detailsOpen ? (
+          <View style={styles.details}>
+            <Text style={styles.detailText}>Модель: Gradient Boosted Trees</Text>
+            <Text style={styles.detailText}>Признаки: {info.features}</Text>
+            <Text style={styles.detailText}>Деревья: {info.trees}</Text>
+            <Text style={styles.detailText}>Узлы: {info.nodes}</Text>
+            <Text style={styles.detailText}>
+              Версия: {modelMeta.version}; источник: {modelMeta.source === "cached" ? "кеш" : "встроенная"}; дата:{" "}
+              {modelMeta.date}
+            </Text>
+          </View>
+        ) : null}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
-function Info({ label, value }: { label: string; value: string }) {
+function Check({ text }: { text: string }) {
   return (
-    <View style={styles.info}>
-      <Text style={styles.infoValue}>{value}</Text>
-      <Text style={styles.infoLabel}>{label}</Text>
+    <View style={styles.checkRow}>
+      <Ionicons name="checkmark-circle" color={colors.primary} size={21} />
+      <Text style={styles.body}>{text}</Text>
+    </View>
+  );
+}
+
+function Meaning({ color, icon, title, text }: { color: string; icon: string; title: string; text: string }) {
+  return (
+    <View style={styles.meaningRow}>
+      <Text style={styles.meaningIcon}>{icon}</Text>
+      <View style={styles.meaningText}>
+        <Text style={[styles.meaningTitle, { color }]}>{title}</Text>
+        <Text style={styles.body}>{text}</Text>
+      </View>
     </View>
   );
 }
@@ -67,65 +115,126 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg,
   },
   content: {
-    padding: 18,
+    paddingHorizontal: 16,
+    paddingTop: 8,
     paddingBottom: 120,
     gap: 14,
   },
-  hero: {
-    borderRadius: 30,
-    padding: 24,
-    minHeight: 190,
-    justifyContent: "space-between",
-    ...shadow,
-  },
-  heroTitle: {
-    color: colors.surface,
-    fontSize: 34,
-    fontWeight: "900",
-  },
-  heroText: {
-    color: "rgba(255,255,255,0.85)",
-    fontWeight: "700",
-    lineHeight: 22,
-  },
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
-  },
-  info: {
-    width: "48%",
+  header: {
     backgroundColor: colors.surface,
     borderRadius: radii.card,
-    padding: 16,
+    padding: 18,
+    flexDirection: "row",
+    gap: 14,
     ...shadow,
   },
-  infoValue: {
-    color: colors.primary,
-    fontSize: 24,
+  logo: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerText: {
+    flex: 1,
+  },
+  title: {
+    color: colors.text,
+    fontSize: 25,
+    lineHeight: 30,
     fontWeight: "900",
   },
-  infoLabel: {
+  subtitle: {
     color: colors.muted,
+    fontSize: 15,
+    lineHeight: 22,
     fontWeight: "700",
-    marginTop: 4,
+    marginTop: 8,
   },
   card: {
     backgroundColor: colors.surface,
     borderRadius: radii.card,
     padding: 18,
+    gap: 12,
     ...shadow,
   },
   cardTitle: {
     color: colors.text,
-    fontSize: 19,
+    fontSize: 20,
     fontWeight: "900",
-    marginBottom: 10,
   },
   body: {
+    flex: 1,
     color: colors.text,
+    fontSize: 15,
     fontWeight: "600",
     lineHeight: 22,
-    marginTop: 4,
+  },
+  checkRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 10,
+  },
+  meaningRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 10,
+  },
+  meaningIcon: {
+    fontSize: 20,
+    lineHeight: 24,
+  },
+  meaningText: {
+    flex: 1,
+  },
+  meaningTitle: {
+    fontSize: 16,
+    fontWeight: "900",
+    marginBottom: 2,
+  },
+  note: {
+    borderRadius: radii.card,
+    backgroundColor: "#E6E9FF",
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.line,
+  },
+  noteText: {
+    color: colors.deep,
+    fontSize: 15,
+    lineHeight: 22,
+    fontWeight: "800",
+  },
+  detailsButton: {
+    minHeight: 52,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.line,
+    paddingHorizontal: 18,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  detailsButtonText: {
+    color: colors.primary,
+    fontSize: 16,
+    fontWeight: "900",
+  },
+  pressed: {
+    opacity: 0.82,
+  },
+  details: {
+    borderRadius: radii.card,
+    backgroundColor: colors.surface,
+    padding: 16,
+    gap: 6,
+  },
+  detailText: {
+    color: colors.muted,
+    fontSize: 13,
+    fontWeight: "700",
+    lineHeight: 19,
   },
 });

@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
-import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { getHistory } from "../storage/history";
@@ -48,48 +49,48 @@ export function HistoryScreen({ onResult }: Props) {
   }, [filter, items]);
 
   return (
-    <View style={styles.screen}>
-      <Text style={styles.title}>История</Text>
-      <Text style={styles.subtitle}>Последние проверки хранятся только на устройстве.</Text>
-      <SegmentedPill
-        value={filter}
-        onChange={setFilter}
-        options={[
-          { label: "Все", value: "all" },
-          { label: "🟢", value: "green" },
-          { label: "🟡", value: "yellow" },
-          { label: "🔴", value: "red" },
-        ]}
-      />
+    <SafeAreaView style={styles.screen} edges={["top", "left", "right"]}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <Text style={styles.title}>История</Text>
+        <Text style={styles.subtitle}>Последние проверки хранятся только на устройстве.</Text>
+        <SegmentedPill
+          value={filter}
+          onChange={setFilter}
+          options={[
+            { label: "Все", value: "all" },
+            { label: "🟢", value: "green" },
+            { label: "🟡", value: "yellow" },
+            { label: "🔴", value: "red" },
+          ]}
+        />
 
-      <FlatList
-        data={filteredItems}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={filteredItems.length ? styles.list : styles.emptyWrap}
-        ListEmptyComponent={
-          <View style={styles.empty}>
-            <Ionicons name="time-outline" color={colors.primary} size={38} />
-            <Text style={styles.emptyTitle}>{items.length ? "Нет проверок в фильтре" : "Пока нет проверок"}</Text>
-            <Text style={styles.emptyText}>
-              {items.length ? "Переключите фильтр выше." : "Отсканируйте QR или вставьте ссылку вручную."}
-            </Text>
-          </View>
-        }
-        renderItem={({ item }) => (
-          <Pressable style={styles.row} onPress={() => onResult(item)}>
-            <View style={[styles.dot, { backgroundColor: verdictColor(item.verdict) }]} />
-            <View style={styles.rowText}>
-              <Text style={styles.host} numberOfLines={1}>{item.host || item.url}</Text>
-              <Text style={styles.reason} numberOfLines={1}>{item.reasons[0]}</Text>
+        <View style={styles.list}>
+          {filteredItems.length ? (
+            filteredItems.map((item) => (
+              <Pressable key={item.id} style={({ pressed }) => [styles.row, pressed && styles.pressed]} onPress={() => onResult(item)}>
+                <View style={[styles.dot, { backgroundColor: verdictColor(item.verdict) }]} />
+                <View style={styles.rowText}>
+                  <Text style={styles.host} numberOfLines={1}>{item.host || item.url}</Text>
+                  <Text style={styles.reason} numberOfLines={1}>{item.reasons[0]}</Text>
+                </View>
+                <View style={styles.right}>
+                  <Text style={[styles.risk, { color: verdictColor(item.verdict) }]}>{item.risk}</Text>
+                  <Text style={styles.time}>{formatTime(item.scannedAt)}</Text>
+                </View>
+              </Pressable>
+            ))
+          ) : (
+            <View style={styles.empty}>
+              <Ionicons name="time-outline" color={colors.primary} size={36} />
+              <Text style={styles.emptyTitle}>{items.length ? "Нет проверок в фильтре" : "Пока нет проверок"}</Text>
+              <Text style={styles.emptyText}>
+                {items.length ? "Переключите фильтр выше." : "Отсканируйте QR или вставьте ссылку вручную."}
+              </Text>
             </View>
-            <View style={styles.right}>
-              <Text style={[styles.risk, { color: verdictColor(item.verdict) }]}>{item.risk}</Text>
-              <Text style={styles.time}>{formatTime(item.scannedAt)}</Text>
-            </View>
-          </Pressable>
-        )}
-      />
-    </View>
+          )}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -97,47 +98,53 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: colors.bg,
-    padding: 18,
+  },
+  content: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 120,
   },
   title: {
-    marginTop: 12,
     color: colors.text,
-    fontSize: 34,
+    fontSize: 30,
     fontWeight: "900",
-    letterSpacing: -0.8,
   },
   subtitle: {
     color: colors.muted,
     fontWeight: "700",
     marginTop: 6,
-    marginBottom: 16,
+    marginBottom: 14,
+    lineHeight: 20,
   },
   list: {
     gap: 12,
-    paddingTop: 14,
-    paddingBottom: 120,
+    marginTop: 14,
   },
   row: {
-    minHeight: 86,
+    minHeight: 78,
     borderRadius: radii.card,
     backgroundColor: colors.surface,
-    padding: 16,
+    padding: 14,
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
     ...shadow,
   },
+  pressed: {
+    opacity: 0.82,
+  },
   dot: {
-    width: 14,
-    height: 14,
+    width: 13,
+    height: 13,
     borderRadius: 7,
   },
   rowText: {
     flex: 1,
+    minWidth: 0,
   },
   host: {
     color: colors.text,
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: "900",
   },
   reason: {
@@ -149,7 +156,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
   },
   risk: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: "900",
   },
   time: {
@@ -157,21 +164,17 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "700",
   },
-  emptyWrap: {
-    flexGrow: 1,
-    justifyContent: "center",
-  },
   empty: {
-    borderRadius: 30,
+    borderRadius: radii.card,
     backgroundColor: colors.surface,
-    padding: 26,
+    padding: 24,
     alignItems: "center",
     ...shadow,
   },
   emptyTitle: {
     color: colors.text,
     fontWeight: "900",
-    fontSize: 20,
+    fontSize: 19,
     marginTop: 12,
   },
   emptyText: {
@@ -179,5 +182,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginTop: 6,
     textAlign: "center",
+    lineHeight: 20,
   },
 });

@@ -21,15 +21,15 @@ export function StatCard({ label, value, tone = "primary" }: Props) {
 const styles = StyleSheet.create({
   card: {
     flex: 1,
-    minHeight: 116,
+    minHeight: 98,
     backgroundColor: colors.surface,
     borderRadius: radii.card,
-    padding: 18,
+    padding: 16,
     justifyContent: "space-between",
     ...shadow,
   },
   value: {
-    fontSize: 34,
+    fontSize: 30,
     fontWeight: "900",
   },
   label: {

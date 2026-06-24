@@ -5,8 +5,11 @@ import vm from "node:vm";
 const require = createRequire(import.meta.url);
 const source = fs
   .readFileSync(new URL("../src/ml/qrshieldEngine.js", import.meta.url), "utf8")
+  .replace("import bundledModel from './qrshield_model.json';", 'const bundledModel = require("../src/ml/qrshield_model.json");')
   .replace('import bundledModel from "./qrshield_model.json";', 'const bundledModel = require("../src/ml/qrshield_model.json");')
-  .replace(/export function /g, "function ");
+  .replace(/export function /g, "function ")
+  .replace(/export \{[^}]+\};/g, "")
+  .replace(/export default assess;/g, "");
 
 const sandbox = {
   module: { exports: {} },
@@ -28,15 +31,20 @@ vm.runInNewContext(`${source}\nmodule.exports = { assess, setModel, getModelInfo
 
 const { assess, getModelInfo } = sandbox.module.exports;
 const checks = [
+  ["onay.kz", "green"],
   ["kaspi.kz", "green"],
+  ["egov.kz", "green"],
   ["kaspi-pay.top", "red"],
+  ["kaspi-pay.top/login", "red"],
+  ["http://192.168.4.21/kaspi/pay", "red"],
   ["forms.gle/abc", "green"],
   ["bit.ly/x", "yellow"],
+  ["some-random-newsite.kz", "yellow"],
   ["summit2026.kz", "yellow"],
 ];
 
 const info = getModelInfo();
-console.log("ALDANBA QR-SHIELD OFFLINE MODEL");
+console.log("Aldanba QR-Shield offline model");
 console.log(`model: Gradient Boosted Trees | trees=${info.trees} | features=${info.features} | nodes=${info.nodes}`);
 console.log("network: disabled for detection | backend: none");
 console.log("");

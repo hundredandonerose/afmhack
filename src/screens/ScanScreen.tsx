@@ -1,17 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  AccessibilityInfo,
-  Animated,
-  Easing,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { useCallback, useState } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { CameraView, useCameraPermissions, BarcodeScanningResult } from "expo-camera";
-import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { assess } from "../ml/qrshieldEngine";
 import { saveAssessment } from "../storage/history";
@@ -27,31 +17,9 @@ export function ScanScreen({ onResult }: Props) {
   const [scanning, setScanning] = useState(false);
   const [manualUrl, setManualUrl] = useState("");
   const [busy, setBusy] = useState(false);
-  const [reduceMotion, setReduceMotion] = useState(false);
-  const scanAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    AccessibilityInfo.isReduceMotionEnabled().then(setReduceMotion);
-  }, []);
-
-  useEffect(() => {
-    if (!scanning || reduceMotion) {
-      scanAnim.stopAnimation();
-      scanAnim.setValue(0);
-      return;
-    }
-
-    const loop = Animated.loop(
-      Animated.timing(scanAnim, {
-        toValue: 1,
-        duration: 1600,
-        easing: Easing.out(Easing.quad),
-        useNativeDriver: true,
-      }),
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [reduceMotion, scanAnim, scanning]);
+  const { width, height } = useWindowDimensions();
+  const compact = height < 700;
+  const cameraSize = Math.min(width - 32, compact ? 220 : 360);
 
   const analyze = useCallback(
     async (url: string) => {
@@ -84,24 +52,25 @@ export function ScanScreen({ onResult }: Props) {
   };
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <LinearGradient colors={[colors.primary, colors.deep]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
-        <View style={styles.heroTop}>
-          <View style={styles.logo}>
-            <Ionicons name="shield-checkmark" color={colors.surface} size={24} />
+    <SafeAreaView style={styles.screen} edges={["top", "left", "right"]}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
+      >
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.title}>Aldanba</Text>
+            <Text style={styles.subtitle}>Наведите камеру на QR-код. Ссылка проверится до открытия.</Text>
           </View>
-          <Text style={styles.heroBadge}>AI Shield · Offline ML</Text>
+          <View style={styles.logo}>
+            <Ionicons name="shield-checkmark" color={colors.surface} size={22} />
+          </View>
         </View>
-        <Text style={styles.heroTitle}>aldanba</Text>
-        <Text style={styles.heroText}>
-          Проверяйте QR-ссылку до перехода. Модель работает на устройстве, без backend и без отправки URL.
-        </Text>
-      </LinearGradient>
 
-      <ThreatConsole scanning={scanning} busy={busy} />
-
-      <View style={styles.cameraCard}>
-        <View style={styles.cameraFrame}>
+        <View style={[styles.cameraFrame, { width: cameraSize, height: cameraSize }]}>
           {scanning && permission?.granted ? (
             <CameraView
               style={StyleSheet.absoluteFill}
@@ -112,42 +81,23 @@ export function ScanScreen({ onResult }: Props) {
           ) : (
             <View style={styles.cameraPlaceholder}>
               <Ionicons name="qr-code-outline" color={colors.primary} size={48} />
-              <Text style={styles.placeholderTitle}>Камера появится здесь</Text>
-              <Text style={styles.placeholderText}>Нажмите кнопку и наведите телефон на QR-код</Text>
+              <Text style={styles.placeholderTitle}>Камера выключена</Text>
+              <Text style={styles.placeholderText}>Нажмите «Сканировать QR», чтобы открыть камеру.</Text>
             </View>
           )}
-          {scanning && !reduceMotion ? (
-            <Animated.View
-              pointerEvents="none"
-              style={[
-                styles.scanLine,
-                {
-                  transform: [
-                    {
-                      translateY: scanAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [-130, 130],
-                      }),
-                    },
-                  ],
-                },
-              ]}
-            />
-          ) : null}
-          <View pointerEvents="none" style={styles.reticle}>
-            <Text style={styles.reticleText}>{scanning ? "LIVE QR CAPTURE" : "CAMERA BAY"}</Text>
+          <View pointerEvents="none" style={styles.focusBox}>
+            <View style={[styles.corner, styles.cornerTL]} />
+            <View style={[styles.corner, styles.cornerTR]} />
+            <View style={[styles.corner, styles.cornerBL]} />
+            <View style={[styles.corner, styles.cornerBR]} />
           </View>
-          <View style={[styles.corner, styles.cornerTL]} />
-          <View style={[styles.corner, styles.cornerTR]} />
-          <View style={[styles.corner, styles.cornerBL]} />
-          <View style={[styles.corner, styles.cornerBR]} />
         </View>
 
         {!permission?.granted && permission?.canAskAgain === false ? (
           <View style={styles.permissionHint}>
             <Ionicons name="camera-outline" color={colors.amber} size={20} />
             <Text style={styles.permissionText}>
-              Камера заблокирована. Откройте настройки приложения и разрешите доступ к камере. Поле ручной проверки ниже работает всегда.
+              Камера заблокирована. Разрешите доступ в настройках приложения или вставьте ссылку вручную ниже.
             </Text>
           </View>
         ) : null}
@@ -158,7 +108,7 @@ export function ScanScreen({ onResult }: Props) {
           style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}
           onPress={startScan}
         >
-          <Ionicons name={scanning ? "stop-circle" : "scan"} size={20} color={colors.surface} />
+          <Ionicons name={scanning ? "stop-circle" : "scan"} size={21} color={colors.surface} />
           <Text style={styles.primaryButtonText}>{scanning ? "Остановить камеру" : "Сканировать QR"}</Text>
         </Pressable>
 
@@ -172,6 +122,7 @@ export function ScanScreen({ onResult }: Props) {
             autoCapitalize="none"
             autoCorrect={false}
             keyboardType="url"
+            returnKeyType="go"
             style={styles.input}
             onSubmitEditing={() => analyze(manualUrl)}
           />
@@ -185,45 +136,9 @@ export function ScanScreen({ onResult }: Props) {
           </Pressable>
         </View>
 
-        <Text style={styles.privacy}>Анализ на устройстве — ссылка никуда не отправляется</Text>
-        <Text style={styles.offline}>Работает в airplane mode: модель уже внутри приложения.</Text>
-      </View>
-    </ScrollView>
-  );
-}
-
-function ThreatConsole({ scanning, busy }: { scanning: boolean; busy: boolean }) {
-  const status = busy ? "ASSESSING" : scanning ? "QR STREAM ARMED" : "STANDBY";
-  const rows = [
-    ["CORE", "Gradient Boosted Trees · 300"],
-    ["FEATURES", "23 URL-сигнала"],
-    ["PRIVACY", "offline · zero upload"],
-    ["STATUS", status],
-  ];
-
-  return (
-    <View style={styles.console}>
-      <View style={styles.consoleHead}>
-        <View>
-          <Text style={styles.consoleKicker}>ALDANBA LOCAL AI</Text>
-          <Text style={styles.consoleTitle}>Threat trace</Text>
-        </View>
-        <View style={[styles.liveDot, scanning && styles.liveDotActive]} />
-      </View>
-
-      <View style={styles.codeRail}>
-        <Text style={styles.codeText}>0xA7 FISHING_VECTORS</Text>
-        <Text style={styles.codeText}>HOST_RISK::ML_PROB</Text>
-        <Text style={styles.codeText}>NO_CLOUD_CALL</Text>
-      </View>
-
-      {rows.map(([label, value]) => (
-        <View key={label} style={styles.consoleRow}>
-          <Text style={styles.consoleLabel}>{label}</Text>
-          <Text style={styles.consoleValue}>{value}</Text>
-        </View>
-      ))}
-    </View>
+        <Text style={styles.privacy}>Анализ на устройстве — ссылка никуда не отправляется.</Text>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -232,148 +147,113 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.bg,
   },
+  scroll: {
+    flex: 1,
+  },
   content: {
-    padding: 18,
-    paddingBottom: 120,
-    gap: 18,
+    flexGrow: 1,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 96,
+    gap: 12,
+    alignItems: "stretch",
   },
-  hero: {
-    borderRadius: 30,
-    padding: 24,
-    minHeight: 208,
-    justifyContent: "space-between",
-    ...shadow,
-  },
-  heroTop: {
+  header: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
+    justifyContent: "space-between",
+    gap: 14,
+  },
+  title: {
+    color: colors.text,
+    fontSize: 30,
+    fontWeight: "900",
+  },
+  subtitle: {
+    color: colors.muted,
+    fontSize: 14,
+    fontWeight: "700",
+    lineHeight: 20,
+    marginTop: 3,
+    maxWidth: 260,
   },
   logo: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "rgba(255,255,255,0.18)",
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
-  },
-  heroBadge: {
-    color: colors.surface,
-    fontWeight: "800",
-    backgroundColor: "rgba(255,255,255,0.16)",
-    borderRadius: radii.pill,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    overflow: "hidden",
-  },
-  heroTitle: {
-    color: colors.surface,
-    fontSize: 44,
-    fontWeight: "900",
-    letterSpacing: -1.4,
-  },
-  heroText: {
-    color: "rgba(255,255,255,0.84)",
-    fontSize: 16,
-    lineHeight: 23,
-    fontWeight: "600",
-  },
-  cameraCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 30,
-    padding: 16,
     ...shadow,
   },
   cameraFrame: {
     position: "relative",
-    aspectRatio: 1,
+    alignSelf: "center",
     borderRadius: radii.card,
-    backgroundColor: colors.terminal,
+    backgroundColor: colors.surface,
     overflow: "hidden",
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 1,
+    borderColor: colors.line,
+    ...shadow,
   },
   cameraPlaceholder: {
     alignItems: "center",
     gap: 8,
+    paddingHorizontal: 22,
   },
   placeholderTitle: {
-    color: colors.surface,
+    color: colors.text,
     fontWeight: "900",
     fontSize: 18,
   },
   placeholderText: {
-    color: "#A7C7CE",
+    color: colors.muted,
     fontWeight: "700",
     textAlign: "center",
-    paddingHorizontal: 18,
+    lineHeight: 20,
   },
-  scanLine: {
+  focusBox: {
     position: "absolute",
-    left: 18,
-    right: 18,
-    height: 3,
-    borderRadius: 3,
-    backgroundColor: colors.scan,
-    shadowColor: colors.scan,
-    shadowOpacity: 0.9,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 0 },
-  },
-  reticle: {
-    position: "absolute",
-    left: 18,
-    right: 18,
-    bottom: 18,
-    alignItems: "center",
-  },
-  reticleText: {
-    color: "#BDEDE7",
-    fontSize: 11,
-    fontWeight: "900",
-    letterSpacing: 1.4,
-    backgroundColor: "rgba(7,20,23,0.72)",
-    borderRadius: radii.pill,
-    overflow: "hidden",
-    paddingHorizontal: 12,
-    paddingVertical: 7,
+    width: "68%",
+    aspectRatio: 1,
   },
   corner: {
     position: "absolute",
-    width: 46,
-    height: 46,
+    width: 42,
+    height: 42,
     borderColor: colors.primary,
   },
   cornerTL: {
-    top: 18,
-    left: 18,
+    top: 0,
+    left: 0,
     borderLeftWidth: 4,
     borderTopWidth: 4,
-    borderTopLeftRadius: 14,
+    borderTopLeftRadius: 12,
   },
   cornerTR: {
-    top: 18,
-    right: 18,
+    top: 0,
+    right: 0,
     borderRightWidth: 4,
     borderTopWidth: 4,
-    borderTopRightRadius: 14,
+    borderTopRightRadius: 12,
   },
   cornerBL: {
-    bottom: 18,
-    left: 18,
+    bottom: 0,
+    left: 0,
     borderLeftWidth: 4,
     borderBottomWidth: 4,
-    borderBottomLeftRadius: 14,
+    borderBottomLeftRadius: 12,
   },
   cornerBR: {
-    bottom: 18,
-    right: 18,
+    bottom: 0,
+    right: 0,
     borderRightWidth: 4,
     borderBottomWidth: 4,
-    borderBottomRightRadius: 14,
+    borderBottomRightRadius: 12,
   },
   primaryButton: {
-    marginTop: 16,
     minHeight: 56,
     borderRadius: radii.pill,
     backgroundColor: colors.primary,
@@ -381,9 +261,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     flexDirection: "row",
     gap: 8,
-  },
-  pressed: {
-    opacity: 0.82,
   },
   primaryButtonText: {
     color: colors.surface,
@@ -393,21 +270,24 @@ const styles = StyleSheet.create({
   manualBox: {
     flexDirection: "row",
     gap: 10,
-    marginTop: 14,
   },
   input: {
     flex: 1,
+    minWidth: 0,
     minHeight: 54,
     borderRadius: radii.card,
-    backgroundColor: colors.bg,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.line,
     paddingHorizontal: 16,
     color: colors.text,
     fontWeight: "700",
+    fontSize: 15,
   },
   secondaryButton: {
     minHeight: 54,
     borderRadius: radii.pill,
-    paddingHorizontal: 18,
+    paddingHorizontal: 16,
     backgroundColor: colors.deep,
     alignItems: "center",
     justifyContent: "center",
@@ -415,9 +295,12 @@ const styles = StyleSheet.create({
   secondaryButtonText: {
     color: colors.surface,
     fontWeight: "900",
+    fontSize: 15,
+  },
+  pressed: {
+    opacity: 0.82,
   },
   permissionHint: {
-    marginTop: 14,
     borderRadius: radii.card,
     backgroundColor: colors.softAmber,
     padding: 14,
@@ -432,86 +315,8 @@ const styles = StyleSheet.create({
   },
   privacy: {
     textAlign: "center",
-    color: colors.text,
-    marginTop: 16,
-    fontWeight: "800",
-  },
-  offline: {
-    textAlign: "center",
     color: colors.muted,
-    marginTop: 4,
     fontWeight: "700",
-  },
-  console: {
-    backgroundColor: colors.terminal,
-    borderRadius: 28,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: "rgba(123,227,214,0.28)",
-    ...shadow,
-  },
-  consoleHead: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 14,
-  },
-  consoleKicker: {
-    color: colors.scan,
-    fontSize: 11,
-    fontWeight: "900",
-    letterSpacing: 1.6,
-  },
-  consoleTitle: {
-    color: colors.surface,
-    fontSize: 24,
-    fontWeight: "900",
-    marginTop: 2,
-  },
-  liveDot: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: "#33494D",
-  },
-  liveDotActive: {
-    backgroundColor: colors.scan,
-    shadowColor: colors.scan,
-    shadowOpacity: 0.9,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 0 },
-  },
-  codeRail: {
-    borderRadius: 16,
-    backgroundColor: "rgba(123,227,214,0.08)",
-    padding: 12,
-    gap: 4,
-    marginBottom: 10,
-  },
-  codeText: {
-    color: "#84BDB8",
-    fontSize: 11,
-    fontWeight: "800",
-    letterSpacing: 1,
-  },
-  consoleRow: {
-    minHeight: 34,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(123,227,214,0.14)",
-  },
-  consoleLabel: {
-    color: "#88AEB4",
-    fontSize: 12,
-    fontWeight: "900",
-    letterSpacing: 1.2,
-  },
-  consoleValue: {
-    color: colors.surface,
-    fontWeight: "800",
-    maxWidth: "62%",
-    textAlign: "right",
+    lineHeight: 20,
   },
 });
