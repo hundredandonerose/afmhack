@@ -137,8 +137,63 @@
     line-height:1.5;
   }
   .camera-note[hidden]{display:none}
-  #reader{border-radius:var(--radius);overflow:hidden;background:var(--nav)}
-  #reader:empty{display:none}
+  #reader{
+    position:relative;
+    display:grid;
+    place-items:center;
+    width:100%;
+    min-height:280px;
+    aspect-ratio:1/1;
+    border:1px solid var(--accent-line);
+    border-radius:var(--radius);
+    overflow:hidden;
+    background:
+      linear-gradient(135deg, color-mix(in srgb,var(--nav) 92%,var(--accent)), var(--nav-mid));
+    color:var(--nav-text);
+  }
+  #reader::before{
+    content:"Камера появится здесь";
+    width:min(230px,70%);
+    aspect-ratio:1/1;
+    display:grid;
+    place-items:center;
+    padding:18px;
+    border:2px solid color-mix(in srgb,var(--accent-soft) 70%,transparent);
+    border-radius:18px;
+    color:color-mix(in srgb,var(--nav-text) 72%,transparent);
+    font-family:var(--font-display);
+    font-size:14px;
+    font-weight:700;
+    text-align:center;
+    line-height:1.35;
+  }
+  #reader::after{
+    content:"";
+    position:absolute;
+    inset:18px;
+    border-radius:18px;
+    background:
+      linear-gradient(var(--accent-soft),var(--accent-soft)) left top/34px 3px no-repeat,
+      linear-gradient(var(--accent-soft),var(--accent-soft)) left top/3px 34px no-repeat,
+      linear-gradient(var(--accent-soft),var(--accent-soft)) right top/34px 3px no-repeat,
+      linear-gradient(var(--accent-soft),var(--accent-soft)) right top/3px 34px no-repeat,
+      linear-gradient(var(--accent-soft),var(--accent-soft)) left bottom/34px 3px no-repeat,
+      linear-gradient(var(--accent-soft),var(--accent-soft)) left bottom/3px 34px no-repeat,
+      linear-gradient(var(--accent-soft),var(--accent-soft)) right bottom/34px 3px no-repeat,
+      linear-gradient(var(--accent-soft),var(--accent-soft)) right bottom/3px 34px no-repeat;
+    pointer-events:none;
+  }
+  #reader:has(video)::before{display:none}
+  #reader video{
+    width:100%!important;
+    height:100%!important;
+    object-fit:cover;
+  }
+  #reader__scan_region,
+  #reader__scan_region video{
+    width:100%!important;
+    min-height:280px;
+  }
   .btn{
     min-height:48px;
     width:100%;
