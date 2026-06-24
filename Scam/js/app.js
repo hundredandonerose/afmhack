@@ -1,101 +1,12 @@
 /**
  * QR-Shield App Controller
+ * Main page handles demo analysis only. Camera scanning lives in /scan.html.
  */
 
 const AppController = (() => {
-  let qrScanner = null;
-  let isScanning = false;
-
-  // ─── Scanner ─────────────────────────────────────────────────────────────
-
-  function openScanner() {
-    document.getElementById('scannerModal').classList.add('active');
-    document.body.style.overflow = 'hidden';
-    if (typeof Html5Qrcode !== 'undefined') {
-      initCamera();
-    } else {
-      document.getElementById('scannerViewport').style.display = 'none';
-    }
-  }
-
-  function closeScanner() {
-    stopCamera();
-    document.getElementById('scannerModal').classList.remove('active');
-    document.body.style.overflow = '';
-    document.getElementById('manualUrlInput').value = '';
-  }
-
-  function initCamera() {
-    const viewport = document.getElementById('scannerViewport');
-    viewport.style.display = 'block';
-    qrScanner = new Html5Qrcode('qr-reader');
-    isScanning = true;
-    qrScanner.start(
-      { facingMode: 'environment' },
-      { fps: 10, qrbox: { width: 220, height: 220 } },
-      (text) => {
-        if (!isScanning) return;
-        isScanning = false;
-        stopCamera();
-        closeScanner();
-        showResults(text);
-      },
-      () => {}
-    ).catch(() => {
-      viewport.innerHTML = `
-        <div class="camera-error">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-            <circle cx="12" cy="13" r="4"/><line x1="1" y1="1" x2="23" y2="23"/>
-          </svg>
-          <p>Камера недоступна.<br>Используйте загрузку файла или ручной ввод.</p>
-        </div>`;
-    });
-  }
-
-  function stopCamera() {
-    if (qrScanner) {
-      qrScanner.stop().catch(() => {});
-      qrScanner = null;
-    }
-    isScanning = false;
-  }
-
-  function openManualInput() {
-    openScanner();
-    setTimeout(() => document.getElementById('manualUrlInput').focus(), 300);
-  }
-
-  function analyzeManualUrl() {
-    const val = document.getElementById('manualUrlInput').value.trim();
-    if (!val) return;
-    closeScanner();
-    showResults(val);
-  }
-
-  // File upload
-  function handleFileUpload(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (typeof Html5Qrcode === 'undefined') return;
-    const reader = new Html5Qrcode('qr-reader-file');
-    reader.scanFile(file, false)
-      .then((text) => {
-        closeScanner();
-        showResults(text);
-      })
-      .catch(() => {
-        alert('Не удалось распознать QR-код в файле. Попробуйте другое изображение.');
-      });
-  }
-
-  // ─── Demo ─────────────────────────────────────────────────────────────────
-
   function runDemo(url) {
     showResults(url);
   }
-
-  // ─── Results ──────────────────────────────────────────────────────────────
 
   function showResults(urlStr) {
     const result = QRShieldAnalyzer.analyze(urlStr);
@@ -113,7 +24,6 @@ const AppController = (() => {
     const card = document.getElementById('resultsCard');
     const content = document.getElementById('resultsContent');
 
-    // Set card theme
     card.dataset.verdict = result.verdict;
 
     const verdictLabels = {
@@ -194,7 +104,6 @@ const AppController = (() => {
         </div>
       </div>`;
 
-    // Animate gauge
     requestAnimationFrame(() => {
       const arc = content.querySelector('.gauge-progress');
       if (arc) {
@@ -206,7 +115,7 @@ const AppController = (() => {
 
   function renderGauge(score) {
     const R = 72;
-    const circum = Math.PI * R; // semicircle
+    const circum = Math.PI * R;
     const offset = circum * (1 - score / 100);
     const css = getComputedStyle(document.documentElement);
     const color = score >= 55
@@ -242,7 +151,7 @@ const AppController = (() => {
   function renderFeatureTable(f) {
     const rows = [
       ['Домен', f.domain],
-      ['Протокол', f.isHTTPS ? 'HTTPS ✓' : 'HTTP — небезопасно'],
+      ['Протокол', f.isHTTPS ? 'HTTPS ✓' : 'HTTP, небезопасно'],
       ['TLD', f.tld],
       ['Поддомены', f.subdomainCount],
       ['Длина URL', f.urlLength + ' символов'],
@@ -274,40 +183,19 @@ const AppController = (() => {
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
-  // ─── Init ─────────────────────────────────────────────────────────────────
-
   function init() {
-    // Close modals on backdrop click
-    document.getElementById('scannerModal').addEventListener('click', (e) => {
-      if (e.target === e.currentTarget) closeScanner();
-    });
     document.getElementById('resultsModal').addEventListener('click', (e) => {
       if (e.target === e.currentTarget) closeResults();
     });
 
-    // Keyboard close
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        closeScanner();
-        closeResults();
-      }
+      if (e.key === 'Escape') closeResults();
     });
 
-    // Manual URL input: Enter key
-    document.getElementById('manualUrlInput').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') analyzeManualUrl();
-    });
-
-    // File upload
-    const fileInput = document.getElementById('qrFileInput');
-    if (fileInput) fileInput.addEventListener('change', handleFileUpload);
-
-    // Sticky header on scroll
     window.addEventListener('scroll', () => {
       document.getElementById('header').classList.toggle('scrolled', window.scrollY > 20);
     });
 
-    // Animate stats on scroll
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
     }, { threshold: 0.1 });
@@ -316,5 +204,5 @@ const AppController = (() => {
 
   document.addEventListener('DOMContentLoaded', init);
 
-  return { openScanner, closeScanner, openManualInput, analyzeManualUrl, closeResults, runDemo };
+  return { closeResults, runDemo };
 })();
