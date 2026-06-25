@@ -8,6 +8,9 @@ export type Assessment = {
   ml_prob: number | null;
   reasons: string[];
   neutral?: boolean;
+  online?: boolean;
+  facts?: string[];
+  resolvedFrom?: string;
 };
 
 export type HistoryItem = Assessment & {
