@@ -16,9 +16,12 @@ export async function getReports(): Promise<ReportItem[]> {
 
 export async function saveReport(result: Assessment): Promise<ReportItem> {
   const item: ReportItem = {
-    ...result,
-    id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-    reportedAt: new Date().toISOString(),
+    url: result.url,
+    host: result.host,
+    verdict: result.verdict,
+    risk: result.risk,
+    reasons: result.reasons,
+    ts: new Date().toISOString(),
   };
   const reports = await getReports();
   await AsyncStorage.setItem(REPORTS_KEY, JSON.stringify([item, ...reports].slice(0, 100)));

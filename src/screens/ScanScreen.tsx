@@ -3,7 +3,7 @@ import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDim
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CameraView, useCameraPermissions, BarcodeScanningResult } from "expo-camera";
 import { Ionicons } from "@expo/vector-icons";
-import { assess } from "../ml/qrshieldEngine";
+import assess from "../ml/qrshieldEngine";
 import { saveAssessment } from "../storage/history";
 import { colors, radii, shadow } from "../theme/colors";
 import { Assessment } from "../types";

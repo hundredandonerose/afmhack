@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { getModelInfo } from "../ml/qrshieldEngine";
+import model from "../ml/qrshield_model.json";
 import { colors, radii, shadow } from "../theme/colors";
 import { ModelMeta } from "../types";
 
@@ -12,7 +12,11 @@ type Props = {
 
 export function ModelScreen({ modelMeta }: Props) {
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const info = getModelInfo();
+  const info = {
+    features: model.features.length,
+    trees: model.trees.length,
+    nodes: model.trees.reduce((sum: number, tree: unknown[]) => sum + tree.length, 0),
+  };
 
   return (
     <SafeAreaView style={styles.screen} edges={["top", "left", "right"]}>

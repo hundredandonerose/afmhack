@@ -1,4 +1,4 @@
-import { Linking, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radii, shadow } from "../theme/colors";
 import { Assessment } from "../types";
@@ -39,8 +39,8 @@ export function ResultModal({ result, visible, onClose }: Props) {
   const color = tone(result);
   const imitation = imitationDomain(result);
   const openUrl = result.url.includes("://") ? result.url : `https://${result.url}`;
-  const reasons = result.reasons.slice(0, 3);
-  const isNeutral = result.neutral === true;
+  const reasons = result.reasons;
+  const isUnscored = result.neutral === true || result.risk === null;
 
   const report = async () => {
     await saveReport(result);
@@ -50,6 +50,17 @@ export function ResultModal({ result, visible, onClose }: Props) {
   const close = () => {
     setReported(false);
     onClose();
+  };
+
+  const openWithRedConfirmation = () => {
+    Alert.alert(
+      "Открыть опасную ссылку?",
+      "Aldanba пометила этот адрес как высокий риск. Открывайте только если полностью доверяете источнику.",
+      [
+        { text: "Отмена", style: "cancel" },
+        { text: "Открыть", style: "destructive", onPress: () => Linking.openURL(openUrl) },
+      ],
+    );
   };
 
   return (
@@ -65,14 +76,19 @@ export function ResultModal({ result, visible, onClose }: Props) {
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false}>
-            {isNeutral ? (
+            {isUnscored ? (
               <View style={styles.neutralMark}>
                 <Ionicons name="help-circle-outline" color={colors.neutral} size={56} />
               </View>
             ) : (
               <RiskGauge risk={result.risk} verdict={result.verdict} />
             )}
-            <Text style={[styles.verdict, { color }]}>{isNeutral ? "⚪️ Неизвестно" : labels[result.verdict]}</Text>
+            <Text style={[styles.verdict, { color }]}>
+              {isUnscored ? "⚪️ адрес скрыт / новый сайт" : labels[result.verdict]}
+            </Text>
+            {isUnscored ? (
+              <Text style={styles.neutralText}>Открывайте, только если доверяете источнику.</Text>
+            ) : null}
             <Text style={styles.host}>{result.host || result.url}</Text>
             <Text style={styles.url}>{result.url}</Text>
 
@@ -101,29 +117,29 @@ export function ResultModal({ result, visible, onClose }: Props) {
             >
               <Ionicons name={reported ? "checkmark-circle" : "flag-outline"} size={19} color={reported ? colors.green : colors.primary} />
               <Text style={[styles.reportText, reported && styles.reportDoneText]}>
-                {reported ? "Спасибо! Отправлено на проверку — попадёт в следующее обновление модели." : "Сообщить о мошенничестве"}
+                {reported ? "Спасибо! Жалоба сохранена для проверки." : "Пожаловаться"}
               </Text>
             </Pressable>
 
-            {isNeutral ? (
+            {isUnscored ? (
               <Pressable style={[styles.action, { backgroundColor: colors.neutral }]} onPress={() => Linking.openURL(openUrl)}>
                 <Text style={styles.actionText}>Открыть</Text>
               </Pressable>
             ) : result.verdict === "green" ? (
               <Pressable style={[styles.action, { backgroundColor: colors.green }]} onPress={() => Linking.openURL(openUrl)}>
-                <Text style={styles.actionText}>Открыть сайт</Text>
+                <Text style={styles.actionText}>Открыть</Text>
               </Pressable>
             ) : result.verdict === "yellow" ? (
               <Pressable style={[styles.action, { backgroundColor: colors.amber }]} onPress={() => Linking.openURL(openUrl)}>
-                <Text style={styles.actionText}>Всё равно открыть (на свой риск)</Text>
+                <Text style={styles.actionText}>Открыть</Text>
               </Pressable>
             ) : (
               <>
                 <Pressable style={styles.action} onPress={close}>
                   <Text style={styles.actionText}>Не открывать</Text>
                 </Pressable>
-                <Pressable style={styles.dangerOpen} onPress={() => Linking.openURL(openUrl)}>
-                  <Text style={styles.dangerOpenText}>Открыть всё равно</Text>
+                <Pressable style={styles.dangerOpen} onPress={openWithRedConfirmation}>
+                  <Text style={styles.dangerOpenText}>Открыть</Text>
                 </Pressable>
               </>
             )}
@@ -181,6 +197,14 @@ const styles = StyleSheet.create({
     fontSize: 23,
     fontWeight: "900",
     marginTop: 6,
+  },
+  neutralText: {
+    color: colors.neutral,
+    textAlign: "center",
+    fontSize: 15,
+    fontWeight: "800",
+    lineHeight: 21,
+    marginTop: 8,
   },
   neutralMark: {
     width: 112,

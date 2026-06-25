@@ -5,8 +5,8 @@ import vm from "node:vm";
 const require = createRequire(import.meta.url);
 const source = fs
   .readFileSync(new URL("../src/ml/qrshieldEngine.js", import.meta.url), "utf8")
-  .replace("import bundledModel from './qrshield_model.json';", 'const bundledModel = require("../src/ml/qrshield_model.json");')
-  .replace('import bundledModel from "./qrshield_model.json";', 'const bundledModel = require("../src/ml/qrshield_model.json");')
+  .replace("import QRS_MODEL from './qrshield_model.json';", 'const QRS_MODEL = require("../src/ml/qrshield_model.json");')
+  .replace('import QRS_MODEL from "./qrshield_model.json";', 'const QRS_MODEL = require("../src/ml/qrshield_model.json");')
   .replace(/export function /g, "function ")
   .replace(/export \{[^}]+\};/g, "")
   .replace(/export default assess;/g, "");
@@ -25,22 +25,27 @@ const sandbox = {
   Error,
 };
 
-vm.runInNewContext(`${source}\nmodule.exports = { assess, setModel, getModelInfo };`, sandbox, {
+vm.runInNewContext(`${source}\nmodule.exports = { assess };`, sandbox, {
   filename: "qrshieldEngine.js",
 });
 
-const { assess, getModelInfo } = sandbox.module.exports;
+const { assess } = sandbox.module.exports;
+const model = require("../src/ml/qrshield_model.json");
 const checks = [
   ["https://kaspi.kz", "green", false],
   ["https://egov.kz", "green", false],
   ["https://kaspi-pay.top/login", "red", false],
   ["http://halyk-bank.kz.verify-account.xyz", "red", false],
   ["http://192.168.4.21/kaspi/pay", "red", false],
-  ["https://bit.ly/kaspi-bonus", "yellow", false],
+  ["https://bit.ly/kaspi-bonus", "yellow", true],
   ["https://some-random-newsite.kz", "yellow", true],
 ];
 
-const info = getModelInfo();
+const info = {
+  features: model.features.length,
+  trees: model.trees.length,
+  nodes: model.trees.reduce((sum, tree) => sum + tree.length, 0),
+};
 console.log("Aldanba QR-Shield offline model");
 console.log(`model: Gradient Boosted Trees | trees=${info.trees} | features=${info.features} | nodes=${info.nodes}`);
 console.log("network: disabled for detection | backend: none");

@@ -74,7 +74,7 @@ export function RiskGauge({ risk, verdict }: Props) {
       </Svg>
       <View style={styles.center}>
         <Text style={[styles.score, { color: stroke }]}>{safeRisk}</Text>
-        <Text style={styles.caption}>Риск {safeRisk}/100</Text>
+        <Text style={styles.caption}>Риск: {safeRisk}/100</Text>
       </View>
     </View>
   );

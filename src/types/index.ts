@@ -28,7 +28,11 @@ export type ModelMeta = {
   source: "bundled" | "cached";
 };
 
-export type ReportItem = Assessment & {
-  id: string;
-  reportedAt: string;
+export type ReportItem = {
+  url: string;
+  host: string;
+  verdict: Verdict;
+  risk: number | null;
+  reasons: string[];
+  ts: string;
 };

@@ -35,6 +35,6 @@ npm run test:acceptance
 - `https://kaspi-pay.top/login` -> red
 - `http://halyk-bank.kz.verify-account.xyz` -> red
 - `http://192.168.4.21/kaspi/pay` -> red
-- `https://bit.ly/kaspi-bonus` -> yellow
+- `https://bit.ly/kaspi-bonus` -> yellow + neutral, без процента риска
 
 В airplane mode встроенная модель продолжает работать. Вердикты являются risk flags, не гарантиями; точность модели ≈97.6%.
