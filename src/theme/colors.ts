@@ -6,6 +6,8 @@ export const colors = {
   text: "#1B1F3B",
   muted: "#8A90A8",
   line: "#DDE3F6",
+  neutral: "#64748B",
+  softNeutral: "#EEF3F8",
   scan: "#8FE7FF",
   green: "#15803D",
   amber: "#B45309",

@@ -4,12 +4,20 @@ import { colors, radii, shadow } from "../theme/colors";
 type Props = {
   label: string;
   value: string | number;
-  tone?: "green" | "amber" | "red" | "primary";
+  tone?: "green" | "amber" | "red" | "primary" | "neutral";
 };
 
 export function StatCard({ label, value, tone = "primary" }: Props) {
   const tint =
-    tone === "green" ? colors.green : tone === "amber" ? colors.amber : tone === "red" ? colors.red : colors.primary;
+    tone === "green"
+      ? colors.green
+      : tone === "amber"
+        ? colors.amber
+        : tone === "red"
+          ? colors.red
+          : tone === "neutral"
+            ? colors.neutral
+            : colors.primary;
   return (
     <View style={styles.card}>
       <Text style={[styles.value, { color: tint }]}>{value}</Text>

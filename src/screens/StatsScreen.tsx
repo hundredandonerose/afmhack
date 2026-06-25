@@ -8,7 +8,7 @@ import { HistoryItem, Verdict } from "../types";
 import { StatCard } from "../components/StatCard";
 
 function count(items: HistoryItem[], verdict: Verdict) {
-  return items.filter((item) => item.verdict === verdict).length;
+  return items.filter((item) => !item.neutral && item.verdict === verdict).length;
 }
 
 export function StatsScreen() {
@@ -30,10 +30,11 @@ export function StatsScreen() {
     const green = count(items, "green");
     const yellow = count(items, "yellow");
     const red = count(items, "red");
+    const neutral = items.filter((item) => item.neutral).length;
     const total = items.length || 1;
     const monthAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
     const month = items.filter((item) => new Date(item.scannedAt).getTime() >= monthAgo).length;
-    return { green, yellow, red, total, month };
+    return { green, yellow, red, neutral, total, month };
   }, [items]);
 
   return (
@@ -53,13 +54,17 @@ export function StatsScreen() {
           <StatCard label="Заблокировано" value={stats.red} tone="red" />
         </View>
         <View style={styles.cards}>
-          <StatCard label="Под вопросом" value={stats.yellow} tone="amber" />
+          <StatCard label="Неизвестно" value={stats.neutral} tone="neutral" />
           <StatCard label="Безопасно" value={stats.green} tone="green" />
+        </View>
+        <View style={styles.cards}>
+          <StatCard label="Осторожно" value={stats.yellow} tone="amber" />
         </View>
 
         <View style={styles.chartCard}>
           <Text style={styles.cardTitle}>Итоги проверок</Text>
           <Bar label="Безопасно" value={stats.green} total={stats.total} color={colors.green} />
+          <Bar label="Неизвестно" value={stats.neutral} total={stats.total} color={colors.neutral} />
           <Bar label="Осторожно" value={stats.yellow} total={stats.total} color={colors.amber} />
           <Bar label="Опасно" value={stats.red} total={stats.total} color={colors.red} />
         </View>

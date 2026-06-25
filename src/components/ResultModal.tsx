@@ -13,6 +13,7 @@ const labels = {
 };
 
 function tone(result: Assessment) {
+  if (result.neutral) return colors.neutral;
   if (result.verdict === "red") return colors.red;
   if (result.verdict === "yellow") return colors.amber;
   return colors.green;
@@ -39,6 +40,7 @@ export function ResultModal({ result, visible, onClose }: Props) {
   const imitation = imitationDomain(result);
   const openUrl = result.url.includes("://") ? result.url : `https://${result.url}`;
   const reasons = result.reasons.slice(0, 3);
+  const isNeutral = result.neutral === true;
 
   const report = async () => {
     await saveReport(result);
@@ -63,8 +65,14 @@ export function ResultModal({ result, visible, onClose }: Props) {
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false}>
-            <RiskGauge risk={result.risk} verdict={result.verdict} />
-            <Text style={[styles.verdict, { color }]}>{labels[result.verdict]}</Text>
+            {isNeutral ? (
+              <View style={styles.neutralMark}>
+                <Ionicons name="help-circle-outline" color={colors.neutral} size={56} />
+              </View>
+            ) : (
+              <RiskGauge risk={result.risk} verdict={result.verdict} />
+            )}
+            <Text style={[styles.verdict, { color }]}>{isNeutral ? "⚪️ Неизвестно" : labels[result.verdict]}</Text>
             <Text style={styles.host}>{result.host || result.url}</Text>
             <Text style={styles.url}>{result.url}</Text>
 
@@ -97,7 +105,11 @@ export function ResultModal({ result, visible, onClose }: Props) {
               </Text>
             </Pressable>
 
-            {result.verdict === "green" ? (
+            {isNeutral ? (
+              <Pressable style={[styles.action, { backgroundColor: colors.neutral }]} onPress={() => Linking.openURL(openUrl)}>
+                <Text style={styles.actionText}>Открыть</Text>
+              </Pressable>
+            ) : result.verdict === "green" ? (
               <Pressable style={[styles.action, { backgroundColor: colors.green }]} onPress={() => Linking.openURL(openUrl)}>
                 <Text style={styles.actionText}>Открыть сайт</Text>
               </Pressable>
@@ -169,6 +181,17 @@ const styles = StyleSheet.create({
     fontSize: 23,
     fontWeight: "900",
     marginTop: 6,
+  },
+  neutralMark: {
+    width: 112,
+    height: 112,
+    borderRadius: 56,
+    backgroundColor: colors.softNeutral,
+    alignSelf: "center",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 14,
+    marginBottom: 4,
   },
   host: {
     textAlign: "center",

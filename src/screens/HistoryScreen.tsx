@@ -9,11 +9,15 @@ import { colors, radii, shadow } from "../theme/colors";
 import { Assessment, HistoryItem, Verdict } from "../types";
 import { SegmentedPill } from "../components/SegmentedPill";
 
+type HistoryFilter = "all" | Verdict | "neutral";
+
 type Props = {
   onResult: (result: Assessment) => void;
 };
 
-function verdictColor(verdict: Verdict) {
+function itemColor(item: Assessment) {
+  if (item.neutral) return colors.neutral;
+  const verdict = item.verdict;
   if (verdict === "red") return colors.red;
   if (verdict === "yellow") return colors.amber;
   return colors.green;
@@ -30,7 +34,7 @@ function formatTime(value: string) {
 
 export function HistoryScreen({ onResult }: Props) {
   const [items, setItems] = useState<HistoryItem[]>([]);
-  const [filter, setFilter] = useState<"all" | Verdict>("all");
+  const [filter, setFilter] = useState<HistoryFilter>("all");
   const [reportsCount, setReportsCount] = useState(0);
 
   useFocusEffect(
@@ -50,10 +54,11 @@ export function HistoryScreen({ onResult }: Props) {
 
   const filteredItems = useMemo(() => {
     if (filter === "all") return items;
+    if (filter === "neutral") return items.filter((item) => item.neutral);
     return items.filter((item) => item.verdict === filter);
   }, [filter, items]);
 
-  const blocked = items.filter((item) => item.verdict === "red").length;
+  const blocked = items.filter((item) => !item.neutral && item.verdict === "red").length;
   const monthAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
   const thisMonth = items.filter((item) => new Date(item.scannedAt).getTime() >= monthAgo).length;
 
@@ -76,6 +81,7 @@ export function HistoryScreen({ onResult }: Props) {
           options={[
             { label: "Все", value: "all" },
             { label: "🟢", value: "green" },
+            { label: "⚪️", value: "neutral" },
             { label: "🟡", value: "yellow" },
             { label: "🔴", value: "red" },
           ]}
@@ -85,13 +91,13 @@ export function HistoryScreen({ onResult }: Props) {
           {filteredItems.length ? (
             filteredItems.map((item) => (
               <Pressable key={item.id} style={({ pressed }) => [styles.row, pressed && styles.pressed]} onPress={() => onResult(item)}>
-                <View style={[styles.dot, { backgroundColor: verdictColor(item.verdict) }]} />
+                <View style={[styles.dot, { backgroundColor: itemColor(item) }]} />
                 <View style={styles.rowText}>
                   <Text style={styles.host} numberOfLines={1}>{item.host || item.url}</Text>
                   <Text style={styles.reason} numberOfLines={1}>{item.reasons[0]}</Text>
                 </View>
                 <View style={styles.right}>
-                  <Text style={[styles.risk, { color: verdictColor(item.verdict) }]}>{item.risk}</Text>
+                  <Text style={[styles.risk, { color: itemColor(item) }]}>{item.neutral ? "?" : item.risk}</Text>
                   <Text style={styles.time}>{formatTime(item.scannedAt)}</Text>
                 </View>
               </Pressable>

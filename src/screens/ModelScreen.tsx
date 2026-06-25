@@ -40,7 +40,8 @@ export function ModelScreen({ modelMeta }: Props) {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Что значит цвет</Text>
           <Meaning color={colors.green} icon="🟢" title="Безопасно" text="известный сайт или явных признаков угрозы нет." />
-          <Meaning color={colors.amber} icon="🟡" title="Осторожно" text="ссылка скрыта или сайт пока незнаком." />
+          <Meaning color={colors.neutral} icon="⚪️" title="Неизвестно" text="новый сайт без явных признаков угрозы. Процента риска нет." />
+          <Meaning color={colors.amber} icon="🟡" title="Осторожно" text="ссылка скрыта или есть признаки повышенного внимания." />
           <Meaning color={colors.red} icon="🔴" title="Опасно" text="похоже на подделку, открытие блокируется." />
         </View>
 
@@ -57,7 +58,7 @@ export function ModelScreen({ modelMeta }: Props) {
             датасета по РК и дообучение модели находятся в планах.
           </Text>
           <Text style={styles.body}>
-            Если домен .kz новый и явных признаков угрозы нет, приложение показывает «осторожно», а не «опасно».
+            Если домен .kz новый и явных признаков угрозы нет, приложение показывает «неизвестно», а не «опасно».
           </Text>
         </View>
 
