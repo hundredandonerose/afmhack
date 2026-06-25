@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { getHistory } from "../storage/history";
+import { getReportsCount } from "../storage/reports";
 import { colors, radii, shadow } from "../theme/colors";
 import { Assessment, HistoryItem, Verdict } from "../types";
 import { SegmentedPill } from "../components/SegmentedPill";
@@ -30,12 +31,16 @@ function formatTime(value: string) {
 export function HistoryScreen({ onResult }: Props) {
   const [items, setItems] = useState<HistoryItem[]>([]);
   const [filter, setFilter] = useState<"all" | Verdict>("all");
+  const [reportsCount, setReportsCount] = useState(0);
 
   useFocusEffect(
     useCallback(() => {
       let active = true;
       getHistory().then((history) => {
         if (active) setItems(history);
+      });
+      getReportsCount().then((count) => {
+        if (active) setReportsCount(count);
       });
       return () => {
         active = false;
@@ -48,11 +53,23 @@ export function HistoryScreen({ onResult }: Props) {
     return items.filter((item) => item.verdict === filter);
   }, [filter, items]);
 
+  const blocked = items.filter((item) => item.verdict === "red").length;
+  const monthAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+  const thisMonth = items.filter((item) => new Date(item.scannedAt).getTime() >= monthAgo).length;
+
   return (
     <SafeAreaView style={styles.screen} edges={["top", "left", "right"]}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>История</Text>
         <Text style={styles.subtitle}>Последние проверки хранятся только на устройстве.</Text>
+
+        <View style={styles.dashboard}>
+          <Text style={styles.dashboardText}>Проверено: {items.length}</Text>
+          <Text style={styles.dashboardText}>Заблокировано: {blocked}</Text>
+          <Text style={styles.dashboardText}>За месяц: {thisMonth}</Text>
+        </View>
+        <Text style={styles.reportsText}>Мои репорты: {reportsCount}. Они не меняют вердикт сразу, а идут на проверку.</Text>
+
         <SegmentedPill
           value={filter}
           onChange={setFilter}
@@ -113,8 +130,27 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontWeight: "700",
     marginTop: 6,
-    marginBottom: 14,
+    marginBottom: 12,
     lineHeight: 20,
+  },
+  dashboard: {
+    borderRadius: radii.card,
+    backgroundColor: colors.surface,
+    padding: 14,
+    gap: 6,
+    marginBottom: 10,
+    ...shadow,
+  },
+  dashboardText: {
+    color: colors.text,
+    fontSize: 15,
+    fontWeight: "900",
+  },
+  reportsText: {
+    color: colors.muted,
+    fontWeight: "700",
+    lineHeight: 20,
+    marginBottom: 12,
   },
   list: {
     gap: 12,

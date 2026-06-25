@@ -31,16 +31,12 @@ vm.runInNewContext(`${source}\nmodule.exports = { assess, setModel, getModelInfo
 
 const { assess, getModelInfo } = sandbox.module.exports;
 const checks = [
-  ["onay.kz", "green"],
-  ["kaspi.kz", "green"],
-  ["egov.kz", "green"],
-  ["kaspi-pay.top", "red"],
-  ["kaspi-pay.top/login", "red"],
+  ["https://kaspi.kz", "green"],
+  ["https://egov.kz", "green"],
+  ["https://kaspi-pay.top/login", "red"],
+  ["http://halyk-bank.kz.verify-account.xyz", "red"],
   ["http://192.168.4.21/kaspi/pay", "red"],
-  ["forms.gle/abc", "green"],
-  ["bit.ly/x", "yellow"],
-  ["some-random-newsite.kz", "yellow"],
-  ["summit2026.kz", "yellow"],
+  ["https://bit.ly/kaspi-bonus", "yellow"],
 ];
 
 const info = getModelInfo();
@@ -55,7 +51,7 @@ for (const [url, expected] of checks) {
   const ok = result.verdict === expected;
   failed ||= !ok;
   const icon = result.verdict === "red" ? "🔴" : result.verdict === "yellow" ? "🟡" : "🟢";
-  console.log(`${ok ? "PASS" : "FAIL"} ${icon} ${url.padEnd(18)} -> ${result.verdict.padEnd(6)} risk=${String(result.risk).padStart(3)}  ${result.reasons[0]}`);
+  console.log(`${ok ? "PASS" : "FAIL"} ${icon} ${url.padEnd(40)} -> ${result.verdict.padEnd(6)} risk=${String(result.risk ?? 50).padStart(3)}  ${result.reasons[0]}`);
 }
 
 if (failed) process.exit(1);

@@ -1,6 +1,6 @@
 # Aldanba
 
-Expo Go приложение для AFM AI Hackathon 2026, трек AI Shield. Aldanba проверяет QR-ссылку до открытия: камера или ручной ввод, offline ML-вердикт, объяснение риска, история на устройстве и экран модели.
+Expo Go приложение для AFM AI Hackathon 2026, трек AI Shield. Aldanba проверяет QR-ссылку до открытия: камера, ручной ввод, демо-режим, offline ML-вердикт, объяснение риска, история, статистика и локальные репорты.
 
 ## Запуск
 
@@ -15,11 +15,11 @@ npm start
 
 - `src/ml/qrshieldEngine.js` — локальный QR-Shield engine, функция `assess(url)`.
 - `src/ml/qrshield_model.json` — встроенная обученная модель Gradient Boosted Trees.
-- `src/ml/modelManager.ts` — загрузка встроенной модели и безопасный placeholder для обновления модели.
-- `MODEL_URL` сейчас стоит как заглушка: `https://example.com/aldanba/qrshield_model.json`.
-- `AsyncStorage` хранит историю проверок только на устройстве.
+- `src/screens/ScanScreen.tsx` — камера, ручной ввод, demo URLs и анимация анализа.
+- `src/components/ResultModal.tsx` — gauge, причины, действия и «Сообщить о мошенничестве».
+- `AsyncStorage` хранит историю и локальную очередь репортов только на устройстве.
 
-Детекция работает локально. URL не отправляется в ChatGPT, API или backend.
+Детекция работает локально. URL не отправляется в ChatGPT, API или backend. Репорты не переобучают модель на телефоне: они только попадают в локальную очередь для будущего модерируемого обновления.
 
 ## Acceptance test
 
@@ -30,10 +30,11 @@ npm run test:acceptance
 
 Ожидаемые проверки:
 
-- `kaspi.kz` -> green
-- `kaspi-pay.top` -> red
-- `forms.gle/abc` -> green
-- `bit.ly/x` -> yellow
-- `summit2026.kz` -> yellow
+- `https://kaspi.kz` -> green
+- `https://egov.kz` -> green
+- `https://kaspi-pay.top/login` -> red
+- `http://halyk-bank.kz.verify-account.xyz` -> red
+- `http://192.168.4.21/kaspi/pay` -> red
+- `https://bit.ly/kaspi-bonus` -> yellow
 
-В airplane mode уже встроенная модель продолжает работать. Если обновление `MODEL_URL` недоступно, приложение использует bundled model.
+В airplane mode встроенная модель продолжает работать. Вердикты являются risk flags, не гарантиями; точность модели ≈97.6%.

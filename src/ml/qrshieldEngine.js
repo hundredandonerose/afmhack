@@ -19,7 +19,9 @@ function setModel(json) {
   var SUSPICIOUS_WORDS = ["login","signin","verify","secure","account","update",
     "confirm","bank","banking","pay","payment","wallet","free","bonus","gift",
     "prize","win","password","webscr","invoice","billing","support","unlock",
-    "recover","validation","authenticate"];
+    "recover","validation","authenticate",
+    "oplata","tolem","tolemak","aqsha","karta","perevod","vyplata","podarok",
+    "prizes","kredit","zaim","dengi","scan","qrpay"];
 
   var GLOBAL_BRANDS = ["paypal","microsoft","apple","google","amazon","facebook",
     "netflix","instagram","whatsapp","outlook","office365","linkedin","dropbox",
@@ -53,10 +55,14 @@ function setModel(json) {
   var SHORTENERS = new Set(["bit.ly","tinyurl.com","goo.gl","t.co","ow.ly","is.gd",
     "buff.ly","rb.gy","cutt.ly","qrco.de","rebrand.ly","shorturl.at","clck.ru"]);
 
-  var BRANDS = {kaspi:"kaspi.kz", halyk:"halykbank.kz", halykbank:"halykbank.kz",
-    homebank:"homebank.kz", egov:"egov.kz", jusan:"jusan.kz", forte:"fortebank.kz",
-    fortebank:"fortebank.kz", bcc:"bcc.kz", centercredit:"bcc.kz", eubank:"eubank.kz",
-    bereke:"bereke.kz", otbasy:"otbasybank.kz", freedom:"freedombank.kz"};
+  var BRANDS = {kaspi:"kaspi.kz", caspi:"kaspi.kz", qaspi:"kaspi.kz",
+    kaspigold:"kaspi.kz", kaspibank:"kaspi.kz",
+    halyk:"halykbank.kz", halykbank:"halykbank.kz", halyq:"halykbank.kz",
+    homebank:"homebank.kz", egov:"egov.kz", egovkz:"egov.kz", gov:"gov.kz",
+    jusan:"jusan.kz", forte:"fortebank.kz", fortebank:"fortebank.kz",
+    bcc:"bcc.kz", centercredit:"bcc.kz", eubank:"eubank.kz", bereke:"bereke.kz",
+    otbasy:"otbasybank.kz", freedom:"freedombank.kz", onay:"onay.kz",
+    beeline:"beeline.kz", kcell:"kcell.kz", tele2:"tele2.kz"};
 
   var HOMOGLYPH = {"а":"a","е":"e","о":"o","р":"p","с":"c","у":"y","х":"x","к":"k",
     "м":"m","т":"t","в":"b","н":"h","і":"i","ѕ":"s","ӏ":"l","ԁ":"d","ɡ":"g",
@@ -117,6 +123,15 @@ function setModel(json) {
     return prev[b.length];
   }
 
+  function isTransposition(a, token){
+    // adjacent-letter swap, e.g. "kapsi" vs "kaspi", "halky" vs "halyk"
+    if(a.length!==token.length) return false;
+    var diff=[];
+    for(var i=0;i<a.length;i++) if(a[i]!==token[i]) diff.push(i);
+    return diff.length===2 && diff[1]===diff[0]+1 &&
+           a[diff[0]]===token[diff[1]] && a[diff[1]]===token[diff[0]];
+  }
+
   function brandCheck(host){
     var reg = registrable(host);
     if(ALLOWLIST.has(reg) || TRUSTED_PLATFORMS.has(reg) || KZ_SERVICES.has(reg)) return {status:"trusted", domain:reg};
@@ -126,7 +141,10 @@ function setModel(json) {
     for(var token in BRANDS){
       var official = BRANDS[token];
       if(nh.indexOf(token)!==-1) return {status:"lookalike", brand:token, official:official, kind:"embedded"};
-      if(token.length>=4 && lev(core, token)<=1) return {status:"lookalike", brand:token, official:official, kind:"typosquat"};
+      // typosquat: 1 edit for short brands, up to 2 for longer ones, plus letter transposition
+      var maxd = token.length>=6 ? 2 : 1;
+      if(token.length>=4 && (lev(core, token)<=maxd || isTransposition(core, token)))
+        return {status:"lookalike", brand:token, official:official, kind:"typosquat"};
     }
     return {status:"unknown"};
   }
@@ -180,7 +198,9 @@ function setModel(json) {
       s += nodes[n][4];
     }
     var raw = QRS_MODEL.f0 + QRS_MODEL.lr*s;
-    return 1/(1+Math.exp(-raw));
+    // Platt calibration: makes the 0–100 score a real probability (ECE 0.044 -> 0.005).
+    var CAL_A = 1.96634, CAL_B = 0.93117;
+    return 1/(1+Math.exp(-(CAL_A*raw + CAL_B)));
   }
 
   function structuralReasons(f){
@@ -227,17 +247,17 @@ function setModel(json) {
 
     // Unknown .kz: the global model over-flags it, so never hard-block without a strong signal.
     if(tld==="kz" && risk>=70 && !strongFlag){
-      return {url:url, host:host, verdict:"yellow", risk:50, ml_prob:Math.round(prob*1000)/1000,
-        reasons:["новый для нас домен .kz — явных признаков мошенничества нет. Если доверяете источнику, открывайте"]};
+      return {url:url, host:host, verdict:"yellow", neutral:true, risk:null, ml_prob:Math.round(prob*1000)/1000,
+        reasons:["новый для нас сайт — явных признаков мошенничества нет. Открывайте, если доверяете источнику."]};
     }
 
     if(risk>=70 && reasons.length===0){
-      return {url:url, host:host, verdict:"yellow", risk:50, ml_prob:Math.round(prob*1000)/1000,
-        reasons:["новый для нас сайт — явных признаков мошенничества нет. Если доверяете источнику, открывайте"]};
+      return {url:url, host:host, verdict:"yellow", neutral:true, risk:null, ml_prob:Math.round(prob*1000)/1000,
+        reasons:["новый для нас сайт — явных признаков мошенничества нет. Открывайте, если доверяете источнику."]};
     }
     var verdict = risk>=70 ? "red" : (risk>=35 ? "yellow" : "green");
     if(verdict==="green" && reasons.length===0) reasons=["явных признаков фишинга не обнаружено"];
-    return {url:url, host:host, verdict:verdict, risk:risk, ml_prob:Math.round(prob*1000)/1000, reasons:reasons};
+    return {url:url, host:host, verdict:verdict, neutral:false, risk:risk, ml_prob:Math.round(prob*1000)/1000, reasons:reasons};
   }
 
 

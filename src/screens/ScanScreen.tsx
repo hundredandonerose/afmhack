@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from "react-native";
+import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CameraView, useCameraPermissions, BarcodeScanningResult } from "expo-camera";
 import { Ionicons } from "@expo/vector-icons";
@@ -12,11 +12,26 @@ type Props = {
   onResult: (result: Assessment) => void;
 };
 
+const ANALYZING_STEPS = ["Читаю ссылку…", "Проверяю домен…", "Сверяю с базой брендов РК…", "Оцениваю риск…"];
+
+const DEMO_URLS = [
+  "https://kaspi-pay.top/login",
+  "http://halyk-bank.kz.verify-account.xyz",
+  "http://192.168.4.21/kaspi/pay",
+  "https://bit.ly/kaspi-bonus",
+  "https://kaspi.kz",
+  "https://egov.kz",
+];
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 export function ScanScreen({ onResult }: Props) {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanning, setScanning] = useState(false);
   const [manualUrl, setManualUrl] = useState("");
   const [busy, setBusy] = useState(false);
+  const [demoOpen, setDemoOpen] = useState(false);
+  const [analyzingStep, setAnalyzingStep] = useState<string | null>(null);
   const { width, height } = useWindowDimensions();
   const compact = height < 700;
   const cameraSize = Math.min(width - 32, compact ? 220 : 360);
@@ -30,8 +45,14 @@ export function ScanScreen({ onResult }: Props) {
       try {
         const result = assess(clean) as Assessment;
         await saveAssessment(result);
+        for (const step of ANALYZING_STEPS) {
+          setAnalyzingStep(step);
+          await wait(300);
+        }
+        setAnalyzingStep(null);
         onResult(result);
       } finally {
+        setAnalyzingStep(null);
         setBusy(false);
       }
     },
@@ -63,11 +84,12 @@ export function ScanScreen({ onResult }: Props) {
         <View style={styles.header}>
           <View>
             <Text style={styles.title}>Aldanba</Text>
+            <Text style={styles.tagline}>видит то, что ты не можешь</Text>
             <Text style={styles.subtitle}>Наведите камеру на QR-код. Ссылка проверится до открытия.</Text>
           </View>
-          <View style={styles.logo}>
-            <Ionicons name="shield-checkmark" color={colors.surface} size={22} />
-          </View>
+          <Pressable accessibilityRole="button" style={styles.demoButton} onPress={() => setDemoOpen(true)}>
+            <Text style={styles.demoButtonText}>Демо</Text>
+          </Pressable>
         </View>
 
         <View style={[styles.cameraFrame, { width: cameraSize, height: cameraSize }]}>
@@ -138,6 +160,50 @@ export function ScanScreen({ onResult }: Props) {
 
         <Text style={styles.privacy}>Анализ на устройстве — ссылка никуда не отправляется.</Text>
       </ScrollView>
+
+      <Modal visible={Boolean(analyzingStep)} transparent animationType="fade">
+        <View style={styles.analyzingBackdrop}>
+          <View style={styles.analyzingCard}>
+            <View style={styles.analyzingIcon}>
+              <Ionicons name="shield-checkmark" color={colors.surface} size={28} />
+            </View>
+            <Text style={styles.analyzingTitle}>Проверяем ссылку</Text>
+            <Text style={styles.analyzingStep}>{analyzingStep}</Text>
+            <View style={styles.stepDots}>
+              {ANALYZING_STEPS.map((step) => (
+                <View key={step} style={[styles.stepDot, step === analyzingStep && styles.stepDotActive]} />
+              ))}
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal visible={demoOpen} transparent animationType="slide" onRequestClose={() => setDemoOpen(false)}>
+        <View style={styles.demoBackdrop}>
+          <View style={styles.demoSheet}>
+            <View style={styles.demoHeader}>
+              <Text style={styles.demoTitle}>Демо-ссылки</Text>
+              <Pressable accessibilityLabel="Закрыть демо" style={styles.demoClose} onPress={() => setDemoOpen(false)}>
+                <Ionicons name="close" color={colors.text} size={22} />
+              </Pressable>
+            </View>
+            <Text style={styles.demoText}>Каждая ссылка проверяется настоящей offline-моделью.</Text>
+            {DEMO_URLS.map((url) => (
+              <Pressable
+                key={url}
+                style={({ pressed }) => [styles.demoRow, pressed && styles.pressed]}
+                onPress={() => {
+                  setDemoOpen(false);
+                  setManualUrl(url);
+                  analyze(url);
+                }}
+              >
+                <Text style={styles.demoUrl} numberOfLines={1}>{url}</Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -169,6 +235,12 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontWeight: "900",
   },
+  tagline: {
+    color: colors.primary,
+    fontSize: 14,
+    fontWeight: "900",
+    marginTop: 2,
+  },
   subtitle: {
     color: colors.muted,
     fontSize: 14,
@@ -177,14 +249,19 @@ const styles = StyleSheet.create({
     marginTop: 3,
     maxWidth: 260,
   },
-  logo: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
+  demoButton: {
+    minHeight: 46,
+    borderRadius: radii.pill,
     backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
+    paddingHorizontal: 18,
     ...shadow,
+  },
+  demoButtonText: {
+    color: colors.surface,
+    fontSize: 15,
+    fontWeight: "900",
   },
   cameraFrame: {
     position: "relative",
@@ -318,5 +395,103 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontWeight: "700",
     lineHeight: 20,
+  },
+  analyzingBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(27,31,59,0.35)",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+  },
+  analyzingCard: {
+    width: "100%",
+    borderRadius: 28,
+    backgroundColor: colors.surface,
+    padding: 24,
+    alignItems: "center",
+    ...shadow,
+  },
+  analyzingIcon: {
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    backgroundColor: colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  analyzingTitle: {
+    color: colors.text,
+    fontSize: 22,
+    fontWeight: "900",
+    marginTop: 16,
+  },
+  analyzingStep: {
+    color: colors.muted,
+    fontSize: 16,
+    fontWeight: "800",
+    marginTop: 8,
+    textAlign: "center",
+  },
+  stepDots: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 18,
+  },
+  stepDot: {
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    backgroundColor: colors.line,
+  },
+  stepDotActive: {
+    backgroundColor: colors.primary,
+  },
+  demoBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(27,31,59,0.35)",
+    justifyContent: "flex-end",
+  },
+  demoSheet: {
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    backgroundColor: colors.surface,
+    padding: 20,
+    paddingBottom: 34,
+    gap: 10,
+  },
+  demoHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  demoTitle: {
+    color: colors.text,
+    fontSize: 22,
+    fontWeight: "900",
+  },
+  demoClose: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: colors.bg,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  demoText: {
+    color: colors.muted,
+    fontWeight: "700",
+    lineHeight: 20,
+    marginBottom: 6,
+  },
+  demoRow: {
+    minHeight: 48,
+    borderRadius: radii.card,
+    backgroundColor: colors.bg,
+    paddingHorizontal: 14,
+    justifyContent: "center",
+  },
+  demoUrl: {
+    color: colors.text,
+    fontWeight: "800",
   },
 });

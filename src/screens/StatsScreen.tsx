@@ -31,7 +31,9 @@ export function StatsScreen() {
     const yellow = count(items, "yellow");
     const red = count(items, "red");
     const total = items.length || 1;
-    return { green, yellow, red, total };
+    const monthAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+    const month = items.filter((item) => new Date(item.scannedAt).getTime() >= monthAgo).length;
+    return { green, yellow, red, total, month };
   }, [items]);
 
   return (
@@ -39,6 +41,12 @@ export function StatsScreen() {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>Статистика</Text>
         <Text style={styles.subtitle}>График строится только из реальной истории на этом устройстве.</Text>
+
+        <View style={styles.dashboard}>
+          <Text style={styles.dashboardText}>Проверено: {items.length}</Text>
+          <Text style={styles.dashboardText}>Заблокировано: {stats.red}</Text>
+          <Text style={styles.dashboardText}>За месяц: {stats.month}</Text>
+        </View>
 
         <View style={styles.cards}>
           <StatCard label="Проверено" value={items.length} />
@@ -95,6 +103,19 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginTop: 6,
     marginBottom: 16,
+  },
+  dashboard: {
+    borderRadius: radii.card,
+    backgroundColor: colors.surface,
+    padding: 14,
+    gap: 6,
+    marginBottom: 14,
+    ...shadow,
+  },
+  dashboardText: {
+    color: colors.text,
+    fontSize: 15,
+    fontWeight: "900",
   },
   cards: {
     flexDirection: "row",

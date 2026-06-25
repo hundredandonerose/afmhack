@@ -14,7 +14,7 @@ function verdictColor(verdict: Verdict) {
 }
 
 type Props = {
-  risk: number;
+  risk: number | null;
   verdict: Verdict;
 };
 
@@ -22,7 +22,8 @@ export function RiskGauge({ risk, verdict }: Props) {
   const progress = useRef(new Animated.Value(0)).current;
   const [reduced, setReduced] = useState(false);
   const stroke = verdictColor(verdict);
-  const safeRisk = Math.max(0, Math.min(100, risk || 0));
+  const displayRisk = risk ?? (verdict === "yellow" ? 50 : 0);
+  const safeRisk = Math.max(0, Math.min(100, displayRisk));
 
   useEffect(() => {
     AccessibilityInfo.isReduceMotionEnabled().then(setReduced).catch(() => setReduced(false));
@@ -73,7 +74,7 @@ export function RiskGauge({ risk, verdict }: Props) {
       </Svg>
       <View style={styles.center}>
         <Text style={[styles.score, { color: stroke }]}>{safeRisk}</Text>
-        <Text style={styles.caption}>risk score</Text>
+        <Text style={styles.caption}>Риск {safeRisk}/100</Text>
       </View>
     </View>
   );

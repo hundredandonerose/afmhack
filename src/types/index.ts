@@ -4,9 +4,10 @@ export type Assessment = {
   url: string;
   host: string;
   verdict: Verdict;
-  risk: number;
+  risk: number | null;
   ml_prob: number | null;
   reasons: string[];
+  neutral?: boolean;
 };
 
 export type HistoryItem = Assessment & {
@@ -25,4 +26,9 @@ export type ModelMeta = {
   version: string;
   date: string;
   source: "bundled" | "cached";
+};
+
+export type ReportItem = Assessment & {
+  id: string;
+  reportedAt: string;
 };

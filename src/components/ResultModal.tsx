@@ -3,6 +3,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { colors, radii, shadow } from "../theme/colors";
 import { Assessment } from "../types";
 import { RiskGauge } from "./RiskGauge";
+import { saveReport } from "../storage/reports";
+import { useState } from "react";
 
 const labels = {
   green: "🟢 Безопасно",
@@ -18,8 +20,10 @@ function tone(result: Assessment) {
 
 function imitationDomain(result: Assessment) {
   const first = result.reasons?.[0] || "";
-  const match = first.match(/имитирует «([^»]+)»/);
-  return match?.[1] ?? null;
+  const official = first.match(/настоящий адрес ([^,\s]+)/);
+  if (official?.[1]) return official[1];
+  const brand = first.match(/имитирует «([^»]+)»/);
+  return brand?.[1] ?? null;
 }
 
 type Props = {
@@ -29,21 +33,31 @@ type Props = {
 };
 
 export function ResultModal({ result, visible, onClose }: Props) {
+  const [reported, setReported] = useState(false);
   if (!result) return null;
   const color = tone(result);
   const imitation = imitationDomain(result);
-  const canOpen = result.verdict !== "red";
-  const buttonLabel =
-    result.verdict === "green" ? "Открыть сайт" : "Всё равно открыть (на свой риск)";
+  const openUrl = result.url.includes("://") ? result.url : `https://${result.url}`;
+  const reasons = result.reasons.slice(0, 3);
+
+  const report = async () => {
+    await saveReport(result);
+    setReported(true);
+  };
+
+  const close = () => {
+    setReported(false);
+    onClose();
+  };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={close}>
       <View style={styles.backdrop}>
         <View style={styles.sheet}>
           <View style={styles.handle} />
           <View style={styles.header}>
             <Text style={styles.title}>Результат проверки</Text>
-            <Pressable onPress={onClose} style={styles.close} accessibilityLabel="Закрыть результат">
+            <Pressable onPress={close} style={styles.close} accessibilityLabel="Закрыть результат">
               <Ionicons name="close" size={22} color={colors.text} />
             </Pressable>
           </View>
@@ -52,6 +66,7 @@ export function ResultModal({ result, visible, onClose }: Props) {
             <RiskGauge risk={result.risk} verdict={result.verdict} />
             <Text style={[styles.verdict, { color }]}>{labels[result.verdict]}</Text>
             <Text style={styles.host}>{result.host || result.url}</Text>
+            <Text style={styles.url}>{result.url}</Text>
 
             {imitation ? (
               <View style={styles.banner}>
@@ -60,7 +75,7 @@ export function ResultModal({ result, visible, onClose }: Props) {
             ) : null}
 
             <View style={styles.reasonBox}>
-              {result.reasons.map((reason, index) => (
+              {reasons.map((reason, index) => (
                 <Text key={`${reason}-${index}`} style={[styles.reason, index === 0 && styles.reasonHeadline]}>
                   {index === 0 ? "• " : "  "}
                   {reason}
@@ -70,17 +85,35 @@ export function ResultModal({ result, visible, onClose }: Props) {
 
             <Text style={styles.privacy}>URL проверен локально. Он не отправлялся на сервер.</Text>
 
-            {canOpen ? (
-              <Pressable
-                style={[styles.action, { backgroundColor: color }]}
-                onPress={() => Linking.openURL(result.url.includes("://") ? result.url : `https://${result.url}`)}
-              >
-                <Text style={styles.actionText}>{buttonLabel}</Text>
+            <Pressable
+              accessibilityRole="button"
+              style={[styles.report, reported && styles.reportDone]}
+              onPress={report}
+              disabled={reported}
+            >
+              <Ionicons name={reported ? "checkmark-circle" : "flag-outline"} size={19} color={reported ? colors.green : colors.primary} />
+              <Text style={[styles.reportText, reported && styles.reportDoneText]}>
+                {reported ? "Спасибо! Отправлено на проверку — попадёт в следующее обновление модели." : "Сообщить о мошенничестве"}
+              </Text>
+            </Pressable>
+
+            {result.verdict === "green" ? (
+              <Pressable style={[styles.action, { backgroundColor: colors.green }]} onPress={() => Linking.openURL(openUrl)}>
+                <Text style={styles.actionText}>Открыть сайт</Text>
+              </Pressable>
+            ) : result.verdict === "yellow" ? (
+              <Pressable style={[styles.action, { backgroundColor: colors.amber }]} onPress={() => Linking.openURL(openUrl)}>
+                <Text style={styles.actionText}>Всё равно открыть (на свой риск)</Text>
               </Pressable>
             ) : (
-              <View style={styles.blocked}>
-                <Text style={styles.blockedText}>⛔ Открытие заблокировано</Text>
-              </View>
+              <>
+                <Pressable style={styles.action} onPress={close}>
+                  <Text style={styles.actionText}>Не открывать</Text>
+                </Pressable>
+                <Pressable style={styles.dangerOpen} onPress={() => Linking.openURL(openUrl)}>
+                  <Text style={styles.dangerOpenText}>Открыть всё равно</Text>
+                </Pressable>
+              </>
             )}
           </ScrollView>
         </View>
@@ -143,6 +176,13 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginTop: 6,
   },
+  url: {
+    color: colors.text,
+    textAlign: "center",
+    fontWeight: "700",
+    lineHeight: 19,
+    marginTop: 8,
+  },
   banner: {
     backgroundColor: colors.softRed,
     borderColor: "#FFD2D2",
@@ -183,25 +223,52 @@ const styles = StyleSheet.create({
     marginTop: 18,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: colors.red,
   },
   actionText: {
     color: colors.surface,
     fontWeight: "900",
     fontSize: 16,
   },
-  blocked: {
-    minHeight: 54,
+  dangerOpen: {
+    minHeight: 50,
     borderRadius: radii.pill,
-    marginTop: 18,
+    marginTop: 10,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: colors.softRed,
     borderWidth: 1,
     borderColor: "#FFD2D2",
   },
-  blockedText: {
+  dangerOpenText: {
     color: colors.red,
     fontWeight: "900",
     fontSize: 16,
+  },
+  report: {
+    minHeight: 52,
+    borderRadius: radii.card,
+    borderWidth: 1,
+    borderColor: colors.line,
+    backgroundColor: colors.surface,
+    marginTop: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  reportDone: {
+    backgroundColor: colors.softGreen,
+    borderColor: "#CFEEDA",
+  },
+  reportText: {
+    flex: 1,
+    color: colors.primary,
+    fontWeight: "900",
+    lineHeight: 20,
+  },
+  reportDoneText: {
+    color: colors.green,
   },
 });

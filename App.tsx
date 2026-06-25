@@ -6,7 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 import { ResultModal } from "./src/components/ResultModal";
-import { loadLocalModel, refreshModelIfOnline } from "./src/ml/modelManager";
+import { loadLocalModel } from "./src/ml/modelManager";
 import { HistoryScreen } from "./src/screens/HistoryScreen";
 import { ModelScreen } from "./src/screens/ModelScreen";
 import { ScanScreen } from "./src/screens/ScanScreen";
@@ -40,9 +40,6 @@ function AldanbaApp() {
   useEffect(() => {
     let active = true;
     loadLocalModel().then((meta) => {
-      if (active) setModelMeta(meta);
-    });
-    refreshModelIfOnline().then((meta) => {
       if (active) setModelMeta(meta);
     });
     return () => {
